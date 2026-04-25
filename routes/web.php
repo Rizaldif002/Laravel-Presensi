@@ -1,107 +1,101 @@
 <?php
 
-use App\Http\Controllers\AuthKaryawanController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\DepartemenController;
-use App\Http\Controllers\KaryawanController;
-use App\Http\Controllers\LokasiKantorController;
-use App\Http\Controllers\PresensiController;
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\MataKuliahController;
+use App\Http\Controllers\TahunAjaranController;
+use App\Http\Controllers\RuanganController;
+use App\Http\Controllers\DosenController;
+use App\Http\Controllers\MahasiswaController;
+use App\Http\Controllers\KelasPerkuliahanController;
+use App\Http\Controllers\JadwalPerkuliahanController;
+use App\Http\Controllers\SesiPresensiController;
 
+// 1. Route Halaman Depan
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
 
-// Route::get('/dashboard', function () {
-//     return view('dashboard');
-// })->middleware(['auth', 'verified'])->name('dashboard');
+// 2. Dashboard Utama (Pusat Komando Admin)
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
+// 3. Profil User Login (Bawaan Laravel)
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::group([
-    'prefix' => 'login-karyawan',
-    'middleware' => ['guest', 'login-karyawan'],
-], function () {
-    Route::get('/', [AuthKaryawanController::class, 'create'])->name('login.view');
-    Route::post('/', [AuthKaryawanController::class, 'store'])->name('login.auth');
+// ==========================================
+// 4. AREA ADMIN (Data Master & Akademik)
+// ==========================================
+Route::prefix('admin')->middleware(['auth'])->group(function () {
+
+    // Manajemen Dosen
+    Route::get('/dosen', [DosenController::class, 'index'])->name('admin.dosen');
+    Route::post('/dosen', [DosenController::class, 'store'])->name('admin.dosen.store');
+    Route::put('/dosen/{id}', [DosenController::class, 'update'])->name('admin.dosen.update');
+    Route::delete('/dosen/{id}', [DosenController::class, 'destroy'])->name('admin.dosen.destroy');
+    Route::post('/dosen/import', [DosenController::class, 'import'])->name('admin.dosen.import');
+
+    // Manajemen Mahasiswa
+    Route::get('/mahasiswa', [MahasiswaController::class, 'index'])->name('admin.mahasiswa');
+    Route::post('/mahasiswa', [MahasiswaController::class, 'store'])->name('admin.mahasiswa.store');
+    Route::put('/mahasiswa/{id}', [MahasiswaController::class, 'update'])->name('admin.mahasiswa.update');
+    Route::delete('/mahasiswa/{id}', [MahasiswaController::class, 'destroy'])->name('admin.mahasiswa.destroy');
+    Route::post('/mahasiswa/import', [MahasiswaController::class, 'import'])->name('admin.mahasiswa.import');
+
+    // Mata Kuliah
+    Route::get('/mata-kuliah', [MataKuliahController::class, 'index'])->name('admin.mata-kuliah');
+    Route::post('/mata-kuliah', [MataKuliahController::class, 'store'])->name('admin.mata-kuliah.store');
+    Route::put('/mata-kuliah/{id}', [MataKuliahController::class, 'update'])->name('admin.mata-kuliah.update');
+    Route::delete('/mata-kuliah/{id}', [MataKuliahController::class, 'destroy'])->name('admin.mata-kuliah.destroy');
+    Route::post('/mata-kuliah/import', [MataKuliahController::class, 'import'])->name('admin.mata-kuliah.import');
+
+    // Data Ruangan (Geofencing)
+    Route::get('/ruangan', [RuanganController::class, 'index'])->name('admin.ruangan');
+    Route::post('/ruangan', [RuanganController::class, 'store'])->name('admin.ruangan.store');
+    Route::put('/ruangan/{id}', [RuanganController::class, 'update'])->name('admin.ruangan.update');
+    Route::delete('/ruangan/{id}', [RuanganController::class, 'destroy'])->name('admin.ruangan.destroy');
+
+    // Tahun Ajaran
+    Route::get('/tahun-ajaran', [TahunAjaranController::class, 'index'])->name('admin.tahun-ajaran');
+    Route::post('/tahun-ajaran', [TahunAjaranController::class, 'store'])->name('admin.tahun-ajaran.store');
+    Route::put('/tahun-ajaran/{id}', [TahunAjaranController::class, 'update'])->name('admin.tahun-ajaran.update');
+    Route::delete('/tahun-ajaran/{id}', [TahunAjaranController::class, 'destroy'])->name('admin.tahun-ajaran.destroy');
+    Route::post('/tahun-ajaran/{id}/aktif', [TahunAjaranController::class, 'setAktif'])->name('admin.tahun-ajaran.aktif');
+
+    // ==========================================
+    // REVISI: Manajemen Kelas & Jadwal (Clean Code)
+    // ==========================================
+    
+    // Kelas Perkuliahan (Wadah)
+    Route::post('/kelas/import', [KelasPerkuliahanController::class, 'import'])->name('admin.kelas.import');
+    Route::resource('kelas', KelasPerkuliahanController::class)->names('admin.kelas');
+
+    // Jadwal Perkuliahan (Waktu & Tempat)
+    Route::resource('jadwal', JadwalPerkuliahanController::class)->names('admin.jadwal');
+
+
+    // Riwayat Presensi Akademik (Placeholder)
+    Route::get('/riwayat-presensi', function () {
+        return 'Halaman Riwayat Presensi (Sedang Dibangun)';
+    })->name('admin.riwayat-presensi');
+
+    // Laporan Presensi (Placeholder)
+    Route::get('/laporan-presensi', function () {
+        return 'Halaman Laporan Presensi (Sedang Dibangun)';
+    })->name('admin.laporan.presensi');
+
+    // ==========================================
+    // SISTEM SESI PRESENSI (GEOFENCING & KAMERA)
+    // ==========================================
+    Route::post('/sesi-presensi/buka', [SesiPresensiController::class, 'store'])->name('admin.sesi.buka');
+    Route::get('/sesi-presensi/{id}/live', [SesiPresensiController::class, 'show'])->name('admin.sesi.live');
+    Route::post('/sesi-presensi/{id}/tutup', [SesiPresensiController::class, 'tutup'])->name('admin.sesi.tutup');
 });
 
-Route::group([
-    'prefix' => 'karyawan',
-    'middleware' => ['karyawan'],
-], function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('karyawan.dashboard');
-    Route::post('/logout', [AuthKaryawanController::class, 'destroy'])->name('logout.auth');
-
-    Route::group([
-        'prefix' => 'presensi',
-    ], function () {
-        Route::get('/', [PresensiController::class, 'index'])->name('karyawan.presensi');
-        Route::post('/', [PresensiController::class, 'store'])->name('karyawan.presensi.store');
-
-        Route::group([
-            'prefix' => 'history',
-        ], function () {
-            Route::get('/', [PresensiController::class, 'history'])->name('karyawan.history');
-            Route::post('/search-history', [PresensiController::class, 'searchHistory'])->name('karyawan.history.search');
-        });
-
-        Route::group([
-            'prefix' => 'izin',
-        ], function () {
-            Route::get('/', [PresensiController::class, 'pengajuanPresensi'])->name('karyawan.izin');
-            Route::get('/pengajuan-presensi', [PresensiController::class, 'pengajuanPresensiCreate'])->name('karyawan.izin.create');
-            Route::post('/pengajuan-presensi', [PresensiController::class, 'pengajuanPresensiStore'])->name('karyawan.izin.store');
-            Route::post('/search-history', [PresensiController::class, 'searchPengajuanHistory'])->name('karyawan.izin.search');
-        });
-    });
-
-    Route::group([
-        'prefix' => 'profile',
-    ], function () {
-        Route::get('/', [KaryawanController::class, 'index'])->name('karyawan.profile');
-        Route::post('/update', [KaryawanController::class, 'update'])->name('karyawan.profile.update');
-    });
-});
-
-Route::group([
-    'prefix' => 'admin',
-    'middleware' => ['auth'],
-], function () {
-    Route::get('/dashboard', [DashboardController::class, 'indexAdmin'])->name('admin.dashboard');
-
-    Route::get('/karyawan', [KaryawanController::class, 'indexAdmin'])->name('admin.karyawan');
-    Route::post('/karyawan/tambah', [KaryawanController::class, 'store'])->name('admin.karyawan.store');
-    Route::get('/karyawan/perbarui', [KaryawanController::class, 'edit'])->name('admin.karyawan.edit');
-    Route::post('/karyawan/perbarui', [KaryawanController::class, 'updateAdmin'])->name('admin.karyawan.update');
-    Route::post('/karyawan/hapus', [KaryawanController::class, 'delete'])->name('admin.karyawan.delete');
-
-    Route::get('/departemen', [DepartemenController::class, 'index'])->name('admin.departemen');
-    Route::post('/departemen/tambah', [DepartemenController::class, 'store'])->name('admin.departemen.store');
-    Route::get('/departemen/perbarui', [DepartemenController::class, 'edit'])->name('admin.departemen.edit');
-    Route::post('/departemen/perbarui', [DepartemenController::class, 'update'])->name('admin.departemen.update');
-    Route::post('/departemen/hapus', [DepartemenController::class, 'delete'])->name('admin.departemen.delete');
-
-    Route::get('/monitoring-presensi', [PresensiController::class, 'monitoringPresensi'])->name('admin.monitoring-presensi');
-    Route::post('/monitoring-presensi', [PresensiController::class, 'viewLokasi'])->name('admin.monitoring-presensi.lokasi');
-
-    Route::get('/laporan/presensi', [PresensiController::class, 'laporan'])->name('admin.laporan.presensi');
-    Route::post('/laporan/presensi/karyawan', [PresensiController::class, 'laporanPresensiKaryawan'])->name('admin.laporan.presensi.karyawan');
-    Route::post('/laporan/presensi/semua-karyawan', [PresensiController::class, 'laporanPresensiSemuaKaryawan'])->name('admin.laporan.presensi.semua-karyawan');
-
-    Route::get('/lokasi', [LokasiKantorController::class, 'index'])->name('admin.lokasi-kantor');
-    Route::post('/lokasi/tambah', [LokasiKantorController::class, 'store'])->name('admin.lokasi-kantor.store');
-    Route::get('/lokasi/perbarui', [LokasiKantorController::class, 'edit'])->name('admin.lokasi-kantor.edit');
-    Route::post('/lokasi/perbarui', [LokasiKantorController::class, 'update'])->name('admin.lokasi-kantor.update');
-    Route::post('/lokasi/hapus', [LokasiKantorController::class, 'delete'])->name('admin.lokasi-kantor.delete');
-
-    Route::get('/administrasi-presensi', [PresensiController::class, 'indexAdmin'])->name('admin.administrasi-presensi');
-    Route::post('/administrasi-presensi/status', [PresensiController::class, 'persetujuanPresensi'])->name('admin.administrasi-presensi.persetujuan');
-});
-
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

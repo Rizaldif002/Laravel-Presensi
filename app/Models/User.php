@@ -20,7 +20,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
+    public function dosen()
+    {
+        return $this->hasOne(Dosen::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.

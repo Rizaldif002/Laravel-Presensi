@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('lokasi_kantor', function (Blueprint $table) {
+        Schema::create('mata_kuliah', function (Blueprint $table) {
             $table->id();
-            $table->string('kota');
-            $table->string('alamat');
-            $table->string('latitude');
-            $table->string('longitude');
-            $table->integer('radius');
-            $table->boolean('is_used');
+            $table->string('kode_mk')->unique(); // Contoh: TEE123
+            $table->string('nama_mk');           // Contoh: Algoritma dan Pemrograman
+            $table->integer('sks');              // Contoh: 3
+            $table->integer('semester');         // Contoh: 1 sampai 8
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('lokasi_kantor');
+        Schema::dropIfExists('mata_kuliah');
     }
 };

@@ -11,10 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('departemen', function (Blueprint $table) {
+        Schema::create('mahasiswas', function (Blueprint $table) {
             $table->id();
-            $table->string('kode', 4)->unique();
-            $table->string('nama');
+            $table->string('nim')->unique();
+            $table->string('nama_lengkap');
+            $table->string('program_studi'); // Contoh: Teknik Elektro
+            $table->string('no_hp')->nullable();
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('departemen');
+        Schema::dropIfExists('mahasiswas');
     }
 };
