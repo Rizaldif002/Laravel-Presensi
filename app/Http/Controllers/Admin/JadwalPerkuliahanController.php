@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\JadwalPerkuliahan;
 use App\Models\KelasPerkuliahan;
 use App\Models\Ruangan;
@@ -17,9 +18,9 @@ class JadwalPerkuliahanController extends Controller
         // 2. Fitur Pencarian
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
-            $query->whereHas('kelasPerkuliahan.mataKuliah', function($q) use ($search) {
+            $query->whereHas('kelasPerkuliahan.mataKuliah', function ($q) use ($search) {
                 $q->where('nama_mk', 'like', '%' . $search . '%');
-            })->orWhereHas('kelasPerkuliahan.dosen', function($q) use ($search) {
+            })->orWhereHas('kelasPerkuliahan.dosen', function ($q) use ($search) {
                 $q->where('nama_dosen', 'like', '%' . $search . '%');
             })->orWhere('hari', 'like', '%' . $search . '%');
         }
@@ -55,7 +56,7 @@ class JadwalPerkuliahanController extends Controller
     {
         // Cari jadwal yang mau diedit
         $jadwal = \App\Models\JadwalPerkuliahan::findOrFail($id);
-        
+
         // Simpan perubahan data dari form Pop-up
         $jadwal->update([
             'kelas_perkuliahan_id' => $request->kelas_perkuliahan_id,
@@ -77,3 +78,4 @@ class JadwalPerkuliahanController extends Controller
         return redirect()->back()->with('success', 'Jadwal berhasil dihapus!');
     }
 }
+

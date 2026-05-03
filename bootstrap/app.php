@@ -9,14 +9,17 @@ use Illuminate\Http\Request;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
         // Pengaturan middleware asli kamu tetap aman di sini
         $middleware->alias([
-            'karyawan' => App\Http\Middleware\Karyawan::class,
+            'karyawan'       => App\Http\Middleware\Karyawan::class,
             'login-karyawan' => App\Http\Middleware\LoginKaryawan::class,
+            'role.dosen'     => App\Http\Middleware\EnsureDosenRole::class,
+            'role'           => App\Http\Middleware\RoleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

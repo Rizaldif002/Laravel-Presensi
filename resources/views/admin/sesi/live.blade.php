@@ -34,7 +34,7 @@
                         Radar Geofencing Ruangan
                     </h3>
                     <span class="text-xs font-semibold px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
-                        Radius: {{ $sesi->kelasPerkuliahan->ruangan->radius_meter ?? 50 }} Meter
+                        Radius: {{ $sesi->jadwalPerkuliahan->ruangan->radius_meter ?? 50 }} Meter
                     </span>
                 </div>
                 
@@ -107,7 +107,7 @@
         // Ambil lokasi dan radius ruangan (lokasi absensi/center radar)
         var lat = parseFloat("{{ $sesi->jadwalPerkuliahan->ruangan->latitude }}") || -0.4948;
         var lng = parseFloat("{{ $sesi->jadwalPerkuliahan->ruangan->longitude }}") || 117.1436;
-        var radius = parseInt("{{ $sesi->jadwalPerkuliahan->ruangan->radius }}") || 50;
+        var radius = parseInt("{{ $sesi->jadwalPerkuliahan->ruangan->radius_meter }}") || 50;
 
         // Inisialisasi peta dan fit ke bounds lokasi absensi
         var map = L.map('map').setView([lat, lng], 18);

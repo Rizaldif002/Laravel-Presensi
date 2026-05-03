@@ -3,36 +3,39 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\MataKuliahController;
-use App\Http\Controllers\TahunAjaranController;
-use App\Http\Controllers\RuanganController;
-use App\Http\Controllers\DosenController;
-use App\Http\Controllers\MahasiswaController;
-use App\Http\Controllers\KelasPerkuliahanController;
-use App\Http\Controllers\JadwalPerkuliahanController;
-use App\Http\Controllers\SesiPresensiController;
+use App\Http\Controllers\Admin\MataKuliahController;
+use App\Http\Controllers\Admin\TahunAjaranController;
+use App\Http\Controllers\Admin\RuanganController;
+use App\Http\Controllers\Admin\DosenController;
+use App\Http\Controllers\Admin\MahasiswaController;
+use App\Http\Controllers\Admin\KelasPerkuliahanController;
+use App\Http\Controllers\Admin\JadwalPerkuliahanController;
+use App\Http\Controllers\Admin\SesiPresensiController;
+use App\Http\Controllers\Dosen\SesiPresensiController as DosenSesiController;
 
-// 1. Route Halaman Depan
+// ==========================================
+// 1. Halaman Depan (Public)
+// ==========================================
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-// 2. Dashboard Utama (Pusat Komando Admin)
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+// ==========================================
+// 2. AREA BERSAMA (Admin & Dosen)
+// ==========================================
+Route::middleware(['auth', 'role:admin,dosen'])->group(function () {
 
-// 3. Profil User Login (Bawaan Laravel)
-Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // ==========================================
-// 4. AREA ADMIN (Data Master & Akademik)
+// 3. AREA ADMIN
 // ==========================================
-Route::prefix('admin')->middleware(['auth'])->group(function () {
+Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
     // Manajemen Dosen
     Route::get('/dosen', [DosenController::class, 'index'])->name('admin.dosen');
@@ -55,7 +58,7 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::delete('/mata-kuliah/{id}', [MataKuliahController::class, 'destroy'])->name('admin.mata-kuliah.destroy');
     Route::post('/mata-kuliah/import', [MataKuliahController::class, 'import'])->name('admin.mata-kuliah.import');
 
-    // Data Ruangan (Geofencing)
+    // Ruangan (Geofencing)
     Route::get('/ruangan', [RuanganController::class, 'index'])->name('admin.ruangan');
     Route::post('/ruangan', [RuanganController::class, 'store'])->name('admin.ruangan.store');
     Route::put('/ruangan/{id}', [RuanganController::class, 'update'])->name('admin.ruangan.update');
@@ -68,34 +71,31 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     Route::delete('/tahun-ajaran/{id}', [TahunAjaranController::class, 'destroy'])->name('admin.tahun-ajaran.destroy');
     Route::post('/tahun-ajaran/{id}/aktif', [TahunAjaranController::class, 'setAktif'])->name('admin.tahun-ajaran.aktif');
 
-    // ==========================================
-    // REVISI: Manajemen Kelas & Jadwal (Clean Code)
-    // ==========================================
-    
-    // Kelas Perkuliahan (Wadah)
+    // Kelas & Jadwal Perkuliahan
     Route::post('/kelas/import', [KelasPerkuliahanController::class, 'import'])->name('admin.kelas.import');
     Route::resource('kelas', KelasPerkuliahanController::class)->names('admin.kelas');
-
-    // Jadwal Perkuliahan (Waktu & Tempat)
     Route::resource('jadwal', JadwalPerkuliahanController::class)->names('admin.jadwal');
 
+    // Laporan & Riwayat (Placeholder)
+    Route::get('/riwayat-presensi', fn () => 'Halaman Riwayat Presensi (Sedang Dibangun)')
+        ->name('admin.riwayat-presensi');
+    Route::get('/laporan-presensi', fn () => 'Halaman Laporan Presensi (Sedang Dibangun)')
+        ->name('admin.laporan.presensi');
 
-    // Riwayat Presensi Akademik (Placeholder)
-    Route::get('/riwayat-presensi', function () {
-        return 'Halaman Riwayat Presensi (Sedang Dibangun)';
-    })->name('admin.riwayat-presensi');
-
-    // Laporan Presensi (Placeholder)
-    Route::get('/laporan-presensi', function () {
-        return 'Halaman Laporan Presensi (Sedang Dibangun)';
-    })->name('admin.laporan.presensi');
-
-    // ==========================================
-    // SISTEM SESI PRESENSI (GEOFENCING & KAMERA)
-    // ==========================================
+    // Sesi Presensi (untuk admin monitor)
     Route::post('/sesi-presensi/buka', [SesiPresensiController::class, 'store'])->name('admin.sesi.buka');
     Route::get('/sesi-presensi/{id}/live', [SesiPresensiController::class, 'show'])->name('admin.sesi.live');
     Route::post('/sesi-presensi/{id}/tutup', [SesiPresensiController::class, 'tutup'])->name('admin.sesi.tutup');
+});
+
+// ==========================================
+// 4. AREA DOSEN
+// ==========================================
+Route::prefix('dosen')->middleware(['auth', 'role:dosen'])->name('dosen.')->group(function () {
+    Route::get('/sesi',             [DosenSesiController::class, 'index'])->name('sesi.index');
+    Route::post('/sesi/buka',       [DosenSesiController::class, 'buka'])->name('sesi.buka');
+    Route::get('/sesi/{id}',        [DosenSesiController::class, 'show'])->name('sesi.show');
+    Route::post('/sesi/{id}/tutup', [DosenSesiController::class, 'tutup'])->name('sesi.tutup');
 });
 
 require __DIR__ . '/auth.php';

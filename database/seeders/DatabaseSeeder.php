@@ -14,10 +14,16 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Buat Akun Admin Otomatis Anti-Hilang
-        User::create([
-            'name'     => 'Administrator',
-            'email'    => 'admin@gmail.com',
-            'password' => Hash::make('password'),
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'name'     => 'Administrator',
+                'password' => Hash::make('password'),
+                'role'     => 'admin',
+            ]
+        );
+
+        // 2. Akun dummy mahasiswa untuk testing API
+        $this->call(MahasiswaSeeder::class);
     }
 }

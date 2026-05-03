@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
+use App\Imports\MataKuliahImport;
 use App\Models\MataKuliah;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\MataKuliahImport;
 
 class MataKuliahController extends Controller
 {
@@ -21,7 +22,7 @@ class MataKuliahController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('nama_mk', 'like', '%' . $search . '%')
-                  ->orWhere('kode_mk', 'like', '%' . $search . '%');
+                    ->orWhere('kode_mk', 'like', '%' . $search . '%');
             });
         }
 
@@ -97,7 +98,7 @@ class MataKuliahController extends Controller
     /**
      * Import data mata kuliah via file excel
      */
-    public function import(Request $request) 
+    public function import(Request $request)
     {
         // Gunakan 'file' agar seragam dengan yang biasanya ada di Blade
         $request->validate([
@@ -106,7 +107,7 @@ class MataKuliahController extends Controller
             'file.required' => 'File Excel harus diunggah.',
             'file.mimes' => 'Format file harus .xlsx, .xls, atau .csv'
         ]);
-    
+
         try {
             Excel::import(new MataKuliahImport, $request->file('file'));
             return redirect()->back()->with('success', 'Data Mata Kuliah berhasil diimport!');
@@ -115,3 +116,4 @@ class MataKuliahController extends Controller
         }
     }
 }
+

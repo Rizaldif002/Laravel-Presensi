@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
+use App\Imports\DosenImport;
 use App\Models\Dosen;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\DosenImport;
 
 class DosenController extends Controller
 {
@@ -94,13 +95,14 @@ class DosenController extends Controller
 
         return redirect()->back()->with('success', 'Data Dosen berhasil dihapus!');
     }
+
     public function import(Request $request)
     {
         // Ubah 'file_excel' menjadi 'file' agar sesuai dengan Blade
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv|max:2048'
         ]);
-    
+
         try {
             // Gunakan nama yang sama di sini
             Excel::import(new DosenImport, $request->file('file'));
@@ -111,3 +113,4 @@ class DosenController extends Controller
         }
     }
 }
+

@@ -34,8 +34,8 @@ class KelasPerkuliahan extends Model
         return $this->belongsTo(Dosen::class);
     }
 
-    public function sesiPresensi()
-{
-    return $this->hasMany(SesiPresensi::class, 'kelas_perkuliahan_id');
-}
+    public function jadwalPerkuliahans()
+    {
+        return $this->hasMany(JadwalPerkuliahan::class, 'kelas_perkuliahan_id');
+    }
 }

@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="bg-white border-b border-gray-200 px-8 py-4 mb-6 shadow-sm">
         <h2 class="text-xl font-bold text-gray-800">
-            Pusat Komando (Dashboard)
+            Halaman Utama 
         </h2>
         <p class="text-sm text-gray-500">Pantau statistik data master dan jadwal kelas hari ini secara real-time.</p>
     </div>
@@ -52,7 +52,7 @@
 
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-10">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-gray-800">Pemantauan Kelas Hari Ini <span class="text-blue-600">({{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }})</span></h3>
+                <h3 class="text-lg font-bold text-gray-800"> Kelas Hari Ini <span class="text-blue-600">({{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }})</span></h3>
                 <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                     Sistem Aktif

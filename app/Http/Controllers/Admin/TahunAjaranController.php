@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 
@@ -15,13 +16,13 @@ class TahunAjaranController extends Controller
         if ($request->filled('tahun_ajaran')) {
             $query->where('tahun_ajaran', $request->tahun_ajaran);
         }
-        
+
         if ($request->filled('semester')) {
             $query->where('semester', $request->semester);
         }
 
         $tahunAjarans = $query->orderBy('tahun_ajaran', 'desc')->get();
-        
+
         // Mengambil daftar tahun ajaran yang unik dari database untuk pilihan di filter
         $listTahun = TahunAjaran::select('tahun_ajaran')->distinct()->pluck('tahun_ajaran');
 
@@ -37,8 +38,8 @@ class TahunAjaranController extends Controller
 
         // Cek apakah kombinasi tahun dan semester ini sudah ada
         $exists = TahunAjaran::where('tahun_ajaran', $request->tahun_ajaran)
-                             ->where('semester', $request->semester)
-                             ->exists();
+            ->where('semester', $request->semester)
+            ->exists();
 
         if ($exists) {
             return redirect()->back()->withErrors(['Data Tahun Ajaran dan Semester ini sudah ada!']);
@@ -65,9 +66,9 @@ class TahunAjaranController extends Controller
 
         // Cek duplikasi data pada baris lain
         $exists = TahunAjaran::where('tahun_ajaran', $request->tahun_ajaran)
-                             ->where('semester', $request->semester)
-                             ->where('id', '!=', $id)
-                             ->exists();
+            ->where('semester', $request->semester)
+            ->where('id', '!=', $id)
+            ->exists();
 
         if ($exists) {
             return redirect()->back()->withErrors(['Data Tahun Ajaran dan Semester ini sudah ada!']);
@@ -100,3 +101,4 @@ class TahunAjaranController extends Controller
         return redirect()->back()->with('success', 'Tahun Ajaran Aktif berhasil diubah!');
     }
 }
+

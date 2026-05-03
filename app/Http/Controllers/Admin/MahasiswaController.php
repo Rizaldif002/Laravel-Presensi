@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
+use App\Imports\MahasiswaImport;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
-use App\Imports\MahasiswaImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MahasiswaController extends Controller
@@ -21,8 +22,8 @@ class MahasiswaController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nim', 'like', "%{$search}%")
-                  ->orWhere('nama_lengkap', 'like', "%{$search}%")
-                  ->orWhere('program_studi', 'like', "%{$search}%");
+                    ->orWhere('nama_lengkap', 'like', "%{$search}%")
+                    ->orWhere('program_studi', 'like', "%{$search}%");
             });
         }
 
@@ -119,3 +120,4 @@ class MahasiswaController extends Controller
         }
     }
 }
+

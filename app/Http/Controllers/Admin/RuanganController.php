@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Ruangan;
 use Illuminate\Http\Request;
 
@@ -63,3 +64,4 @@ class RuanganController extends Controller
         return redirect()->back()->with('success', 'Data Ruangan berhasil dihapus!');
     }
 }
+

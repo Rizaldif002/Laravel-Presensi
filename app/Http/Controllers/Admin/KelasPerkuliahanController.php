@@ -1,23 +1,24 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Models\KelasPerkuliahan;
-use App\Models\TahunAjaran;
-use App\Models\MataKuliah;
-use App\Models\Dosen;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Imports\KelasImport;
+use App\Models\Dosen;
+use App\Models\KelasPerkuliahan;
+use App\Models\MataKuliah;
+use App\Models\TahunAjaran;
+use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class KelasPerkuliahanController extends Controller
 {
-    public function import(Request $request) 
+    public function import(Request $request)
     {
         $request->validate([
             'file' => 'required|mimes:xlsx,csv'
         ]);
-        
+
         try {
             Excel::import(new KelasImport, $request->file('file'));
             return redirect()->back()->with('success', 'Data Kelas berhasil diimport!');
@@ -34,12 +35,12 @@ class KelasPerkuliahanController extends Controller
         // 2. Fitur Pencarian (Search)
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('nama_kelas', 'like', '%' . $search . '%')
-                    ->orWhereHas('mataKuliah', function($q2) use ($search) {
+                    ->orWhereHas('mataKuliah', function ($q2) use ($search) {
                         $q2->where('nama_mk', 'like', '%' . $search . '%');
                     })
-                    ->orWhereHas('dosen', function($q2) use ($search) {
+                    ->orWhereHas('dosen', function ($q2) use ($search) {
                         $q2->where('nama_dosen', 'like', '%' . $search . '%');
                     });
             });
@@ -104,3 +105,4 @@ class KelasPerkuliahanController extends Controller
         }
     }
 }
+
