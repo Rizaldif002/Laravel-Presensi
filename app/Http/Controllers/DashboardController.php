@@ -17,11 +17,23 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
+        if ($user->isMahasiswa()) {
+            return redirect()
+                ->route('home')
+                ->with('error', 'Dashboard web hanya untuk Administrator dan Dosen.');
+        }
+
         if ($user->isDosen()) {
             return $this->dosenDashboard($user);
         }
 
-        return $this->adminDashboard();
+        if ($user->isAdmin()) {
+            return $this->adminDashboard();
+        }
+
+        return redirect()
+            ->route('login')
+            ->with('error', 'Peran akun tidak valid.');
     }
 
     private function adminDashboard()

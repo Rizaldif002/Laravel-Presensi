@@ -10,11 +10,20 @@ class EnsureDosenRole
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && auth()->user()->role === 'dosen') {
+        $user = $request->user();
+
+        if ($user && $user->role === 'dosen') {
             return $next($request);
         }
 
-        return redirect()->route('dashboard')
-            ->with('error', 'Halaman ini hanya dapat diakses oleh dosen.');
+        if ($user?->isAdmin()) {
+            return redirect()
+                ->route('dashboard')
+                ->with('error', 'Halaman ini hanya dapat diakses oleh dosen.');
+        }
+
+        return redirect()
+            ->route('login')
+            ->with('error', 'Silakan login sebagai dosen.');
     }
 }

@@ -13,6 +13,14 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
+     * Tabel autentikasi terpusat (bisa diarahkan ke m_user lewat config).
+     */
+    public function getTable(): string
+    {
+        return config('auth.user_table', parent::getTable());
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -21,6 +29,7 @@ class User extends Authenticatable
         'name',
         'email',
         'nim',
+        'foto_profil',
         'password',
         'role',
     ];

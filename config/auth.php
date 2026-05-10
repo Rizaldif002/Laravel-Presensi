@@ -40,10 +40,6 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-        'karyawan' => [
-            'driver' => 'session',
-            'provider' => 'karyawans',
-        ],
         'api' => [
             'driver' => 'sanctum',
             'provider' => 'users',
@@ -71,10 +67,6 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\User::class),
-        ],
-        'karyawans' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\Karyawan::class,
         ],
 
         // 'users' => [
@@ -123,5 +115,18 @@ return [
     */
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Web user table (central auth / m_user)
+    |--------------------------------------------------------------------------
+    |
+    | Model User memakai tabel ini untuk login web (admin, dosen, mahasiswa).
+    | Default Laravel: "users". Jika basis data Anda memakai "m_user", set
+    | AUTH_USER_TABLE=m_user di file .env.
+    |
+    */
+
+    'user_table' => env('AUTH_USER_TABLE', 'users'),
 
 ];

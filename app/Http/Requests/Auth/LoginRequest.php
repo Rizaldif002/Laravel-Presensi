@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -27,13 +28,13 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'login' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
         ];
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Attempt to authenticate the request's credentials (email atau NIP dosen → tabel User).
      *
      * @throws \Illuminate\Validation\ValidationException
      */
@@ -41,15 +42,55 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::guard('web')->attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $credentials = $this->resolveWebCredentials();
+
+        if ($credentials === null || ! Auth::guard('web')->attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'login' => trans('auth.failed'),
+            ]);
+        }
+
+        $user = Auth::guard('web')->user();
+        if ($user && $user->isMahasiswa()) {
+            Auth::guard('web')->logout();
+
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'login' => 'Akun mahasiswa tidak dapat login di halaman web ini. Gunakan aplikasi presensi.',
             ]);
         }
 
         RateLimiter::clear($this->throttleKey());
+    }
+
+    /**
+     * @return array{email: string, password: string}|null
+     */
+    protected function resolveWebCredentials(): ?array
+    {
+        $login = trim((string) $this->input('login'));
+        $password = (string) $this->input('password');
+
+        if ($login === '') {
+            return null;
+        }
+
+        if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
+            return ['email' => $login, 'password' => $password];
+        }
+
+        $user = User::query()
+            ->whereHas('dosen', fn ($q) => $q->where('nip', $login))
+            ->first();
+
+        if ($user === null) {
+            return null;
+        }
+
+        return ['email' => $user->email, 'password' => $password];
     }
 
     /**
@@ -68,7 +109,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
+            'login' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -80,6 +121,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower((string) $this->input('login')).'|'.$this->ip());
     }
 }

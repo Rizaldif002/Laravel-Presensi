@@ -3,9 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
-use Illuminate\Http\Request; 
-
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
@@ -14,12 +13,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Pengaturan middleware asli kamu tetap aman di sini
+        $middleware->redirectUsersTo(function (Request $request) {
+            $user = $request->user();
+            if ($user?->isDosen()) {
+                return route('dosen.sesi.index');
+            }
+            if ($user?->isAdmin()) {
+                return route('dashboard');
+            }
+
+            return route('home');
+        });
+
         $middleware->alias([
-            'karyawan'       => App\Http\Middleware\Karyawan::class,
-            'login-karyawan' => App\Http\Middleware\LoginKaryawan::class,
-            'role.dosen'     => App\Http\Middleware\EnsureDosenRole::class,
-            'role'           => App\Http\Middleware\RoleMiddleware::class,
+            'role.dosen' => App\Http\Middleware\EnsureDosenRole::class,
+            'role'       => App\Http\Middleware\RoleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\KelasPerkuliahanController;
 use App\Http\Controllers\Admin\JadwalPerkuliahanController;
 use App\Http\Controllers\Admin\SesiPresensiController;
 use App\Http\Controllers\Dosen\SesiPresensiController as DosenSesiController;
+use App\Http\Controllers\RiwayatPresensiController;
 
 // ==========================================
 // 1. Halaman Depan (Public)
@@ -29,6 +30,7 @@ Route::middleware(['auth', 'role:admin,dosen'])->group(function () {
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/foto', [ProfileController::class, 'updatePhoto'])->name('profile.update-foto');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
@@ -76,13 +78,13 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('kelas', KelasPerkuliahanController::class)->names('admin.kelas');
     Route::resource('jadwal', JadwalPerkuliahanController::class)->names('admin.jadwal');
 
-    // Laporan & Riwayat (Placeholder)
-    Route::get('/riwayat-presensi', fn () => 'Halaman Riwayat Presensi (Sedang Dibangun)')
-        ->name('admin.riwayat-presensi');
+    // Riwayat & Laporan
+    Route::get('/riwayat-presensi', [RiwayatPresensiController::class, 'index'])->name('admin.riwayat.index');
     Route::get('/laporan-presensi', fn () => 'Halaman Laporan Presensi (Sedang Dibangun)')
         ->name('admin.laporan.presensi');
 
     // Sesi Presensi (untuk admin monitor)
+    Route::get('/sesi-presensi', [SesiPresensiController::class, 'index'])->name('admin.sesi.index');
     Route::post('/sesi-presensi/buka', [SesiPresensiController::class, 'store'])->name('admin.sesi.buka');
     Route::get('/sesi-presensi/{id}/live', [SesiPresensiController::class, 'show'])->name('admin.sesi.live');
     Route::post('/sesi-presensi/{id}/tutup', [SesiPresensiController::class, 'tutup'])->name('admin.sesi.tutup');
@@ -96,6 +98,7 @@ Route::prefix('dosen')->middleware(['auth', 'role:dosen'])->name('dosen.')->grou
     Route::post('/sesi/buka',       [DosenSesiController::class, 'buka'])->name('sesi.buka');
     Route::get('/sesi/{id}',        [DosenSesiController::class, 'show'])->name('sesi.show');
     Route::post('/sesi/{id}/tutup', [DosenSesiController::class, 'tutup'])->name('sesi.tutup');
+    Route::get('/riwayat-presensi', [RiwayatPresensiController::class, 'index'])->name('riwayat.index');
 });
 
 require __DIR__ . '/auth.php';

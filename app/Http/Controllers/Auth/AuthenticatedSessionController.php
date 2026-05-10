@@ -28,26 +28,38 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $role = Auth::user()->role;
+        // Hindari intended URL lintas-peran (mis. admin lalu login sebagai dosen).
+        $request->session()->forget('url.intended');
 
-        if ($role === 'dosen') {
-            return redirect()->intended(route('dosen.sesi.index'));
+        $user = Auth::user();
+
+        if ($user->isDosen()) {
+            return redirect()->route('dosen.sesi.index');
         }
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        if ($user->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()
+            ->route('login')
+            ->withErrors(['login' => 'Peran akun tidak dikenali. Hubungi administrator.']);
     }
 
     /**
-     * Destroy an authenticated session.
+     * Destroy an authenticated session (hapus sesi web agar bisa ganti akun).
      */
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
-        return redirect('/login');
+        return redirect()->route('login');
     }
 }

@@ -23,7 +23,17 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 2. Akun dummy mahasiswa untuk testing API
+        // 2. Buat Akun Dosen Dummy untuk Testing
+        User::firstOrCreate(
+            ['email' => 'dosen@gmail.com'],
+            [
+                'name'     => 'Bapak Dosen',
+                'password' => Hash::make('password'),
+                'role'     => 'dosen',
+            ]
+        );
+
+        // 3. Akun dummy mahasiswa untuk testing API
         $this->call(MahasiswaSeeder::class);
     }
 }
