@@ -12,24 +12,33 @@ class JadwalPerkuliahanController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Ambil data jadwal dengan relasi lengkap
-        $query = JadwalPerkuliahan::with(['kelasPerkuliahan.mataKuliah', 'kelasPerkuliahan.dosen', 'ruangan'])->latest();
+        $query = JadwalPerkuliahan::with(['kelasPerkuliahan.mataKuliah', 'kelasPerkuliahan.dosen', 'ruangan']);
 
-        // 2. Fitur Pencarian
-        if ($request->has('search') && $request->search != '') {
+        if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('kelasPerkuliahan.mataKuliah', function ($q) use ($search) {
-                $q->where('nama_mk', 'like', '%' . $search . '%');
-            })->orWhereHas('kelasPerkuliahan.dosen', function ($q) use ($search) {
-                $q->where('nama_dosen', 'like', '%' . $search . '%');
-            })->orWhere('hari', 'like', '%' . $search . '%');
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('kelasPerkuliahan.mataKuliah', fn($q) => $q->where('nama_mk', 'like', '%' . $search . '%'))
+                  ->orWhereHas('kelasPerkuliahan.dosen', fn($q) => $q->where('nama_dosen', 'like', '%' . $search . '%'))
+                  ->orWhereHas('kelasPerkuliahan', fn($q) => $q->where('nama_kelas', 'like', '%' . $search . '%'));
+            });
         }
 
-        $jadwals = $query->get();
+        if ($request->filled('hari')) {
+            $query->where('hari', $request->hari);
+        }
 
-        // 3. Data Master untuk Modal Tambah/Edit
-        $kelases = KelasPerkuliahan::with(['mataKuliah', 'dosen'])->get();
-        $ruangans = Ruangan::all();
+        if ($request->filled('ruangan_id')) {
+            $query->where('ruangan_id', $request->ruangan_id);
+        }
+
+        $hariOrder = ['Senin' => 1, 'Selasa' => 2, 'Rabu' => 3, 'Kamis' => 4, 'Jumat' => 5, 'Sabtu' => 6, 'Minggu' => 7];
+        $query->orderByRaw("FIELD(hari, 'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu')")->orderBy('jam_mulai');
+
+        $perPage = $request->input('per_page', 10);
+        $jadwals = $query->paginate($perPage)->withQueryString();
+
+        $kelases  = KelasPerkuliahan::with(['mataKuliah', 'dosen'])->get();
+        $ruangans = Ruangan::orderBy('nama_ruangan')->get();
 
         return view('admin.jadwal.index', compact('jadwals', 'kelases', 'ruangans'));
     }

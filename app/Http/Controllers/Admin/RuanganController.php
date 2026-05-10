@@ -8,9 +8,24 @@ use Illuminate\Http\Request;
 
 class RuanganController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $ruangans = Ruangan::all();
+        $perPage = $request->input('per_page', 10);
+        $query = Ruangan::query();
+
+        if ($request->filled('search')) {
+            $query->where('nama_ruangan', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->filled('radius_min')) {
+            $query->where('radius_meter', '>=', (int) $request->radius_min);
+        }
+
+        if ($request->filled('radius_max')) {
+            $query->where('radius_meter', '<=', (int) $request->radius_max);
+        }
+
+        $ruangans = $query->orderBy('nama_ruangan')->paginate($perPage)->withQueryString();
         return view('admin.ruangan.index', compact('ruangans'));
     }
 

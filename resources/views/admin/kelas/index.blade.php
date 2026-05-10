@@ -1,33 +1,45 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800">Manajemen Data Kelas</h2>
+        <h2 class="text-xl font-semibold leading-tight text-gray-800"> Data Kelas</h2>
     </x-slot>
 
     <div class="px-5 pt-5">
-        <div class="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h3 class="text-lg font-semibold text-gray-700 hidden sm:block">
-                Daftar Kelas Perkuliahan
-            </h3>
-            <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                <form action="{{ route('admin.kelas.index') }}" method="GET" class="flex items-center w-full sm:w-auto relative">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Matkul, Dosen, Kelas..." class="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                    <div class="absolute left-3 top-2.5 text-gray-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                    </div>
-                    @if(request('search'))
-                        <a href="{{ route('admin.kelas.index') }}" class="ml-2 text-red-500 hover:text-red-700 text-sm font-medium whitespace-nowrap">Reset</a>
-                    @endif
-                </form>
+        <div class="mb-4 flex flex-col gap-3">
+            <div class="flex justify-start">
                 <button onclick="document.getElementById('modalTambah').classList.remove('hidden')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm shadow-sm transition-all whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Tambah Kelas
                 </button>
-                <button type="button" onclick="document.getElementById('modalImport').classList.remove('hidden')" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    Import Excel
-                </button>
+            </div>
+
+            <div class="border-t border-gray-200 pt-3 flex flex-col gap-3">
+
+
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-3">
+                        @include('admin.components.per-page-selector')
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <form action="{{ route('admin.kelas.index') }}" method="GET" class="flex items-center w-full sm:w-auto relative">
+                            @if(request()->filled('per_page'))
+                                <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                            @endif
+                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Matkul, Dosen, Kelas..." class="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <div class="absolute left-3 top-2.5 text-gray-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            @if(request('search'))
+                                <a href="{{ route('admin.kelas.index', array_filter(['per_page' => request('per_page')])) }}" class="ml-2 text-red-500 hover:text-red-700 text-sm font-medium whitespace-nowrap">Reset</a>
+                            @endif
+                        </form>
+                        <button type="button" onclick="document.getElementById('modalImport').classList.remove('hidden')" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                            Import Excel
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -46,7 +58,7 @@
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse ($kelas as $index => $k)
                         <tr class="hover:bg-blue-50 transition-colors">
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{{ $kelas->firstItem() + $index }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-800">{{ $k->mataKuliah->nama_mk ?? 'N/A' }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
                                 <span class="px-3 py-1 bg-blue-100 text-blue-800 font-bold rounded-md text-xs">{{ $k->nama_kelas }}</span>
@@ -126,6 +138,9 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        <div class="mt-4 flex justify-end">
+            {{ $kelas->links() }}
         </div>
     </div>
 

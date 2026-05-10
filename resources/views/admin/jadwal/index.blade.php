@@ -1,17 +1,35 @@
 <x-app-layout>
 
     <x-slot name="header">
-        <h2 class="text-xl font-semibold leading-tight text-gray-800">Manajemen Kelas Perkuliahan</h2>
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">Kelas Perkuliahan</h2>
     </x-slot>
 
     <div class="px-5 pt-5">
-        <div class="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h3 class="text-lg font-semibold text-gray-700">Kelas Perkuliahan</h3>
-            <div class="flex items-center gap-3 w-full md:w-auto">
+        <div class="mb-4 flex flex-col gap-3">
+            <div class="flex justify-start">
                 <button onclick="document.getElementById('modalTambahJadwal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Tambah Jadwal
                 </button>
+            </div>
+
+            <div class="border-t border-gray-200 pt-3 flex flex-col gap-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        @include('admin.components.per-page-selector')
+                        @if(request('search') || request('hari') || request('ruangan_id'))
+                            <a href="{{ route('admin.jadwal.index') }}" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                                Reset
+                            </a>
+                        @endif
+                    </div>
+                    <button type="button" onclick="document.getElementById('modalFilter').classList.remove('hidden')" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                        Filter
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -19,6 +37,7 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50/50">
                     <tr>
+                        <th class="px-4 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">No</th>
                         <th class="px-4 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Hari & Waktu</th>
                         <th class="px-4 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Mata Kuliah</th>
                         <th class="px-4 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Dosen</th>
@@ -28,8 +47,9 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    @forelse($jadwals as $j)
+                    @forelse($jadwals as $index => $j)
                     <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $jadwals->firstItem() + $index }}</td>
                         <td class="px-4 py-4 whitespace-nowrap">
                             <span class="block text-sm font-bold text-gray-800">{{ $j->hari }}</span>
                             <span class="text-xs text-gray-500">{{ substr($j->jam_mulai,0,5) }} - {{ substr($j->jam_selesai,0,5) }} WITA</span>
@@ -74,10 +94,13 @@
                         </td>
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="p-10 text-center text-gray-400 text-sm">Belum ada jadwal yang diatur.</td></tr>
+                    <tr><td colspan="7" class="p-10 text-center text-gray-400 text-sm">Belum ada jadwal yang diatur.</td></tr>
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        <div class="mt-4 flex justify-end">
+            {{ $jadwals->links() }}
         </div>
     </div>
 
@@ -196,5 +219,50 @@
         </div>
     </div>
     @endforeach
+
+    {{-- Modal Filter Jadwal --}}
+    <div id="modalFilter" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="text-lg font-bold text-gray-800">Filter Jadwal</h3>
+                <button type="button" onclick="document.getElementById('modalFilter').classList.add('hidden')" class="text-gray-400 hover:text-red-500">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form action="{{ route('admin.jadwal.index') }}" method="GET">
+                @if(request()->filled('per_page'))
+                    <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                @endif
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Cari Mata Kuliah / Dosen / Kelas</label>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik kata kunci..." class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Hari</label>
+                        <select name="hari" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm">
+                            <option value="">-- Semua Hari --</option>
+                            @foreach(['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'] as $h)
+                                <option value="{{ $h }}" {{ request('hari') == $h ? 'selected' : '' }}>{{ $h }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Ruangan</label>
+                        <select name="ruangan_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm">
+                            <option value="">-- Semua Ruangan --</option>
+                            @foreach($ruangans as $rng)
+                                <option value="{{ $rng->id }}" {{ request('ruangan_id') == $rng->id ? 'selected' : '' }}>{{ $rng->nama_ruangan }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t flex justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('modalFilter').classList.add('hidden')" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">Terapkan Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </x-app-layout>

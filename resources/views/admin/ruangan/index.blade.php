@@ -1,18 +1,38 @@
 <x-app-layout>
     <x-slot name="header">
-        Data Ruangan (Geofencing)
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">Data Ruangan (Geofencing)</h2>
     </x-slot>
 
     <div>
-        <div class="mb-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <h3 class="text-lg font-semibold text-gray-700">Titik Koordinat Ruang Kelas</h3>
-            <button onclick="openMapModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                Tambah Ruangan & Titik
-            </button>
+        <div class="mb-4 flex flex-col gap-3">
+            <div class="flex justify-start">
+                <button onclick="openMapModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Tambah Ruangan & Titik
+                </button>
+            </div>
+
+            <div class="border-t border-gray-200 pt-3 flex flex-col gap-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        @include('admin.components.per-page-selector')
+                        @if(request('search') || request('radius_min') || request('radius_max'))
+                            <a href="{{ route('admin.ruangan') }}" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                                Reset
+                            </a>
+                        @endif
+                    </div>
+                    <button type="button" onclick="document.getElementById('modalFilter').classList.remove('hidden')" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                        Filter
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="overflow-x-auto bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -30,7 +50,7 @@
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse ($ruangans as $index => $ruang)
                         <tr class="odd:bg-white even:bg-gray-50 hover:bg-blue-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $ruangans->firstItem() + $index }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{{ $ruang->nama_ruangan }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center font-mono">{{ $ruang->latitude }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center font-mono">{{ $ruang->longitude }}</td>
@@ -63,6 +83,9 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        <div class="mt-4 flex justify-end">
+            {{ $ruangans->links() }}
         </div>
     </div>
 
@@ -166,6 +189,48 @@
                     <button type="submit" form="formEditRuangan" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Simpan Perubahan</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Filter Ruangan -->
+    <div id="modalFilter" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 overflow-hidden text-left">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="text-lg font-bold text-gray-800">Filter Ruangan</h3>
+                <button type="button" onclick="document.getElementById('modalFilter').classList.add('hidden')" class="text-gray-400 hover:text-red-500">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form action="{{ route('admin.ruangan') }}" method="GET">
+                @if(request()->filled('per_page'))
+                    <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                @endif
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Cari Nama Ruangan</label>
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik nama ruangan..." class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Filter Radius (Meter)</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Minimal</label>
+                                <input type="number" name="radius_min" value="{{ request('radius_min') }}" placeholder="Cth: 10" min="5" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-500 mb-1">Maksimal</label>
+                                <input type="number" name="radius_max" value="{{ request('radius_max') }}" placeholder="Cth: 100" min="5" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-gray-50 border-t flex justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('modalFilter').classList.add('hidden')" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">Terapkan Filter</button>
+                </div>
+            </form>
         </div>
     </div>
 

@@ -4,32 +4,43 @@
     </x-slot>
 
     <div>
-        <div class="mb-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <h3 class="text-lg font-semibold text-gray-700">Daftar Dosen</h3>
-            <div class="flex items-center gap-2">
-                <button type="button" id="btnOpenFilter" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
-                    Filter & Urutkan
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                    </svg>
-                </button>
-                @if(request('search') || request('sort'))
-                    <a href="{{ route('admin.dosen') }}" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
-                        Reset
-                    </a>
-                @endif
+        <div class="mb-4 flex flex-col gap-3">
+            <div class="flex justify-start">
                 <button onclick="openTambahModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                     Tambah Dosen
                 </button>
-                <button onclick="openImportDosenModal()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                    </svg>
-                    Import Excel
-                </button>
+            </div>
+
+            <div class="border-t border-gray-200 pt-3 flex flex-col gap-3">
+
+
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        @include('admin.components.per-page-selector')
+                        @if(request('search') || request('sort'))
+                            <a href="{{ route('admin.dosen') }}" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                                Reset
+                            </a>
+                        @endif
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" id="btnOpenFilter" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                            Filter & Urutkan
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                            </svg>
+                        </button>
+                        <button onclick="openImportDosenModal()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                            Import Excel
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -47,7 +58,7 @@
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse ($dosens as $index => $dosen)
                         <tr class="odd:bg-white even:bg-gray-50 hover:bg-blue-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $dosens->firstItem() + $index }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">{{ $dosen->nip ?? $dosen->nidn }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-700">{{ $dosen->nama_dosen }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">{{ $dosen->no_hp ?? '-' }}</td>
@@ -109,6 +120,9 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        <div class="mt-4 flex justify-end">
+            {{ $dosens->links() }}
         </div>
     </div>
 
