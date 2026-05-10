@@ -1,14 +1,22 @@
 <x-app-layout>
     @section('title', 'Dashboard Dosen')
-
-    <div class="bg-white border-b border-gray-200 px-8 py-4 mb-6 shadow-sm">
-        <h2 class="text-xl font-bold text-gray-800">
-            Selamat Datang, {{ $dosen?->nama_dosen ?? auth()->user()->name }}
-        </h2>
-        <p class="text-sm text-gray-500">
-            Ringkasan aktivitas perkuliahan Anda hari ini —
-            <strong class="text-blue-600">{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</strong>
-        </p>
+    
+    <div class="bg-white border-b border-gray-200 px-8 py-4 mb-6 shadow-sm flex items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">
+                Selamat Datang, {{ $dosen?->nama_dosen ?? auth()->user()->name }}
+            </h2>
+            <p class="text-sm text-gray-500">
+                Ringkasan aktivitas perkuliahan Anda hari ini —
+                <strong class="text-blue-600">{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</strong>
+            </p>
+        </div>
+        @if($dosen)
+            <div class="hidden sm:block text-right shrink-0">
+                <p class="text-xs text-gray-400">NIP</p>
+                <p class="text-sm font-semibold text-gray-700">{{ $dosen->nip }}</p>
+            </div>
+        @endif
     </div>
 
     @if(!$dosen)
@@ -123,7 +131,7 @@
                 </h3>
                 <a href="{{ route('dosen.sesi.index') }}"
                    class="text-xs text-blue-600 hover:underline font-medium">
-                    Buka Panel Sesi →
+                    Buka Kelas Presensi →
                 </a>
             </div>
             <div class="divide-y divide-gray-50">

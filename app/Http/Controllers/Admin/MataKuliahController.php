@@ -32,7 +32,8 @@ class MataKuliahController extends Controller
             $query->where('semester', $semester);
         }
 
-        $mataKuliahs = $query->get();
+        $perPage = request('per_page', 10);
+        $mataKuliahs = $query->paginate($perPage)->withQueryString();
 
         return view('admin.mata-kuliah.index', compact('mataKuliahs'));
     }

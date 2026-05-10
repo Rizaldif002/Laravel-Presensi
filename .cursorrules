@@ -1,0 +1,147 @@
+# ============================================================
+
+# PROJECT: Sistem Presensi Hybrid — GPS & Foto Selfie
+
+# SKRIPSI — Universitas Mulawarman
+
+# ============================================================
+
+## Identitas Project
+
+- Nama project : Laravel-Presensi
+- Framework : Laravel 12
+- PHP : 8.2
+- Database : MySQL (via XAMPP)
+- Environment : Windows, XAMPP, port 8000
+- IDE : Cursor + Claude Code
+
+## Frontend & Library
+
+- Blade templating engine
+- Tailwind CSS (utility-first)
+- Leaflet.js + OpenStreetMap (peta & geofencing)
+- Alpine.js (jika ada interaksi ringan di Blade)
+
+## API & Mobile
+
+- Laravel Sanctum untuk autentikasi API
+- Flutter akan konsumsi API ini (belum dimulai)
+- Face Recognition: Python API eksternal (integrasi nanti)
+
+# ============================================================
+
+# STRUKTUR DATABASE (dari ERD skripsi)
+
+# ============================================================
+
+## Tabel Master
+
+- m_roles : id, nama_role, status
+- m_permissions : id, name, guard_name
+- m_user : id_user, role_id(FK), nip, nim, nama_lengkap,
+  password, email, foto_profil
+- m_mata_kuliah : id_matkul, kode_mk, nama_mk, sks
+- m_ruangan : id_ruangan, nama_ruangan, gedung,
+  latitude, longitude, radius_meter ← PENTING: radius_meter bukan radius
+- m_tahun_ajaran : id_tahun_ajaran, nama_semester, status
+
+## Tabel Transaksi
+
+- t_kelas_perkuliahan : id_kelas, tahun_ajaran_id, matkul_id,
+  dosen_id, ruangan_id, hari, jam_mulai, jam_selesai
+- t_peserta_kelas : id, mahasiswa_id, kelas_id
+- t_sesi_presensi : id_sesi, kelas_id(FK), nama_pertemuan,
+  jam_buka, jam_tutup, is_gps_enabled,
+  gps_reason, status_sesi
+- t_presensi : id_presensi, sesi_id(FK), mahasiswa_id(FK),
+  waktu_presensi, foto_selfi_path,
+  latitude_presensi, longitude_presensi,
+  status_kehadiran
+
+## Relasi Kritis — WAJIB DIIKUTI
+
+- Ruangan diakses via : $sesi->kelasPerkuliahan->ruangan ✓ BENAR
+- BUKAN via : $sesi->jadwalPerkuliahan->ruangan ✗ SALAH
+- User mahasiswa dan dosen dibedakan dari role_id, bukan tabel terpisah
+
+# ============================================================
+
+# KONVENSI KODE — WAJIB DIIKUTI
+
+# ============================================================
+
+## Penamaan
+
+- Gunakan camelCase untuk nama method dan variabel PHP
+- Gunakan snake_case untuk nama kolom database
+- Nama variabel domain boleh Bahasa Indonesia:
+  $sesi, $ruangan, $mahasiswa, $dosen, $kelas, $presensi
+
+## Eloquent & Query
+
+- SELALU eager load relasi untuk hindari N+1:
+  with(['relasi1', 'relasi2.relasiNested'])
+- Gunakan query scope untuk filter yang sering dipakai
+- Hindari query di dalam loop (@foreach di Blade)
+- Gunakan chunk() untuk proses data besar
+
+## Controller
+
+- Gunakan Form Request terpisah untuk validasi (bukan validate() di controller)
+- Pisahkan logic bisnis ke Service class jika method > 30 baris
+- Satu method controller maksimal 20-30 baris
+
+## Format Response API (untuk endpoint Flutter)
+
+{
+"status": true,
+"message": "Deskripsi singkat",
+"data": { ... }
+}
+Error:
+{
+"status": false,
+"message": "Pesan error",
+"errors": { ... }
+}
+
+## File & Storage
+
+- Foto selfie disimpan di : storage/app/public/presensi/selfie/
+- Foto profil disimpan di : storage/app/public/profil/
+- JANGAN simpan foto sebagai base64 di database
+- Selalu gunakan Storage::disk('public') untuk akses file
+
+## GPS & Geofencing
+
+- Kolom radius ruangan : radius_meter (integer, satuan meter)
+- Kolom latitude/longitude: varchar(50) → selalu parseFloat() di JS
+- Formula jarak : Haversine formula
+- Validasi GPS di server : wajib, jangan hanya di client
+
+# ============================================================
+
+# LARAVEL-SPECIFIC RULES
+
+# ============================================================
+
+- Gunakan Route::resource() untuk CRUD standar
+- API routes masuk ke routes/api.php dengan prefix sanctum auth
+- Web routes (admin/dosen) masuk ke routes/web.php dengan middleware auth
+- Gunakan Laravel Policy untuk otorisasi per role
+- Migration selalu pakai $table->timestamps() dan softDeletes() jika data penting
+- Gunakan config() dan env() — jangan hardcode nilai seperti koordinat atau URL API
+
+# ============================================================
+
+# LARANGAN — JANGAN DILAKUKAN
+
+# ============================================================
+
+- Jangan hardcode koordinat GPS di kode
+- Jangan query N+1 (query di dalam loop)
+- Jangan simpan foto sebagai base64 di database
+- Jangan akses ruangan via $sesi->jadwalPerkuliahan->ruangan
+- Jangan gunakan dd() atau var_dump() di production code
+- Jangan bypass validasi GPS hanya di sisi client (Flutter)
+- Jangan lupa php artisan storage:link setelah setup baru

@@ -33,11 +33,11 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        if ($user->isDosen()) {
-            return redirect()->route('dosen.sesi.index');
+        if ($user->isAdmin()) {
+            return redirect()->route('dashboard');
         }
 
-        if ($user->isAdmin()) {
+        if ($user->isDosen()) {
             return redirect()->route('dashboard');
         }
 

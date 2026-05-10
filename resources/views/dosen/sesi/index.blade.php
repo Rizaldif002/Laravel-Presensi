@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Panel Dosen — Sesi Presensi')
+    @section('title', 'Panel Dosen — Kelas Perkuliahan')
 
     {{-- Flash messages --}}
     @if(session('success'))
@@ -22,9 +22,9 @@
     <div class="mb-6 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
-                <h2 class="text-xl font-extrabold text-gray-800">Panel Sesi Presensi</h2>
+                <h2 class="text-xl font-extrabold text-gray-800">Kelas Perkuliahan</h2>
                 <p class="text-sm text-gray-500 mt-1">
-                    Selamat datang, <span class="font-semibold text-blue-600">{{ $dosen->nama_dosen }}</span> — pilih jadwal untuk membuka sesi absensi.
+                    Selamat datang, <span class="font-semibold text-blue-600">{{ $dosen->nama_dosen }}</span> — pilih jadwal untuk membuka sesi presensi.
                 </p>
             </div>
             <span class="text-xs font-medium px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full">
@@ -101,7 +101,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-3 9a9 9 0 110-18 9 9 0 010 18z"/>
                             </svg>
-                            Lihat Sesi Live
+                            Lihat Sesi
                         </a>
                     @else
                         <form action="{{ route('dosen.sesi.buka') }}" method="POST">

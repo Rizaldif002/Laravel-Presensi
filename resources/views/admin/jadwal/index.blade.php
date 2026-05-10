@@ -7,28 +7,39 @@
     <div class="px-5 pt-5">
         <div class="mb-4 flex flex-col gap-3">
             <div class="flex justify-start">
-                <button onclick="document.getElementById('modalTambahJadwal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-sm">
+                <button onclick="document.getElementById('modalTambahJadwal').classList.remove('hidden')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm shadow-sm transition-all whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Tambah Jadwal
                 </button>
             </div>
 
-            <div class="border-t border-gray-200 pt-3 flex flex-col gap-3">
+            <div class="border-t border-gray-200 pt-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
+
+                    {{-- Kiri: per-page + reset --}}
                     <div class="flex flex-wrap items-center gap-2">
                         @include('admin.components.per-page-selector')
-                        @if(request('search') || request('hari') || request('ruangan_id'))
-                            <a href="{{ route('admin.jadwal.index') }}" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                        @if(request()->filled('hari') || request()->filled('dosen_id') || request()->filled('tahun_ajaran_id'))
+                            <a href="{{ route('admin.jadwal.index', array_filter(['per_page' => request('per_page')])) }}" class="inline-flex items-center gap-1 px-3 py-2 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-all">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 Reset
                             </a>
                         @endif
                     </div>
-                    <button type="button" onclick="document.getElementById('modalFilter').classList.remove('hidden')" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
-                        Filter
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                        </svg>
-                    </button>
+
+                    {{-- Kanan: tombol Filter --}}
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="document.getElementById('modalFilter').classList.remove('hidden')" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap {{ request()->hasAny(['hari','dosen_id','tahun_ajaran_id']) ? 'ring-2 ring-blue-400 border-blue-400' : '' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+                            Filter Jadwal
+                            @if(request()->hasAny(['hari','dosen_id','tahun_ajaran_id']))
+                                <span class="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white rounded-full text-xs font-bold">
+                                    {{ collect(['hari','dosen_id','tahun_ajaran_id'])->filter(fn($k) => request()->filled($k))->count() }}
+                                </span>
+                            @endif
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -42,7 +53,7 @@
                         <th class="px-4 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Mata Kuliah</th>
                         <th class="px-4 py-3 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider">Dosen</th>
                         <th class="px-4 py-3 text-center text-[11px] font-bold text-gray-400 uppercase tracking-wider">Ruangan</th>
-                        <th class="px-4 py-3 text-center text-[11px] font-bold text-gray-400 uppercase tracking-wider">Presensi</th>
+                        <th class="px-4 py-3 text-center text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tahun Ajaran</th>
                         <th class="px-4 py-3 text-center text-[11px] font-bold text-gray-400 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
@@ -56,6 +67,7 @@
                         </td>
                         <td class="px-4 py-4 whitespace-nowrap">
                             <div class="text-sm font-bold text-gray-800">{{ $j->kelasPerkuliahan->mataKuliah->nama_mk }}</div>
+                            <div class="text-xs text-gray-400">{{ $j->kelasPerkuliahan->mataKuliah->sks }} SKS</div>
                             <div class="text-[10px] inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-bold mt-1 border border-blue-100 uppercase">
                                 Kelas {{ $j->kelasPerkuliahan->nama_kelas }}
                             </div>
@@ -66,15 +78,9 @@
                         <td class="px-4 py-4 text-center">
                             <span class="text-xs font-bold px-2 py-1 bg-gray-100 rounded text-gray-600 border border-gray-200">{{ $j->ruangan->nama_ruangan }}</span>
                         </td>
-                        <td class="px-4 py-4 text-center">
-                            <form action="{{ route('admin.sesi.buka') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="jadwal_perkuliahan_id" value="{{ $j->id }}">
-                                <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 mx-auto transition-all shadow-sm">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 001.555-.832l-3-2z"/></svg>
-                                    Mulai Absen
-                                </button>
-                            </form>
+                        <td class="px-4 py-4 text-center whitespace-nowrap">
+                            <span class="block text-sm font-semibold text-gray-700">{{ $j->kelasPerkuliahan->tahunAjaran->tahun_ajaran ?? '-' }}</span>
+                            <span class="text-xs text-gray-400">{{ $j->kelasPerkuliahan->tahunAjaran->semester ?? '' }}</span>
                         </td>
                         <td class="px-4 py-4 text-center">
                             <div class="flex items-center justify-center gap-2">
@@ -222,44 +228,55 @@
 
     {{-- Modal Filter Jadwal --}}
     <div id="modalFilter" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-sm mx-4 overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                 <h3 class="text-lg font-bold text-gray-800">Filter Jadwal</h3>
                 <button type="button" onclick="document.getElementById('modalFilter').classList.add('hidden')" class="text-gray-400 hover:text-red-500">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-            <form action="{{ route('admin.jadwal.index') }}" method="GET">
-                @if(request()->filled('per_page'))
-                    <input type="hidden" name="per_page" value="{{ request('per_page') }}">
-                @endif
-                <div class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Cari Mata Kuliah / Dosen / Kelas</label>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Ketik kata kunci..." class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Hari</label>
-                        <select name="hari" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm">
-                            <option value="">-- Semua Hari --</option>
-                            @foreach(['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'] as $h)
-                                <option value="{{ $h }}" {{ request('hari') == $h ? 'selected' : '' }}>{{ $h }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Ruangan</label>
-                        <select name="ruangan_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm">
-                            <option value="">-- Semua Ruangan --</option>
-                            @foreach($ruangans as $rng)
-                                <option value="{{ $rng->id }}" {{ request('ruangan_id') == $rng->id ? 'selected' : '' }}>{{ $rng->nama_ruangan }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+            <form action="{{ route('admin.jadwal.index') }}" method="GET" class="p-6 space-y-4">
+                @foreach(request()->except(['tahun_ajaran_id', 'hari', 'dosen_id', 'page']) as $key => $val)
+                    <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                @endforeach
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tahun Ajaran</label>
+                    <select name="tahun_ajaran_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm bg-gray-50">
+                        <option value="">Semua Tahun Ajaran</option>
+                        @foreach($tahunAjarans as $ta)
+                            <option value="{{ $ta->id }}" {{ request('tahun_ajaran_id') == $ta->id ? 'selected' : '' }}>
+                                {{ $ta->tahun_ajaran }} – {{ $ta->semester }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
-                <div class="px-6 py-4 bg-gray-50 border-t flex justify-end gap-2">
-                    <button type="button" onclick="document.getElementById('modalFilter').classList.add('hidden')" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">Terapkan Filter</button>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Hari</label>
+                    <select name="hari" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm bg-gray-50">
+                        <option value="">Semua Hari</option>
+                        @foreach(['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'] as $h)
+                            <option value="{{ $h }}" {{ request('hari') == $h ? 'selected' : '' }}>{{ $h }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Dosen</label>
+                    <select name="dosen_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm bg-gray-50">
+                        <option value="">Semua Dosen</option>
+                        @foreach($dosens as $dsn)
+                            <option value="{{ $dsn->id }}" {{ request('dosen_id') == $dsn->id ? 'selected' : '' }}>
+                                {{ $dsn->nama_dosen }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <a href="{{ route('admin.jadwal.index', array_filter(['per_page' => request('per_page')])) }}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-100">Batal</a>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Terapkan</button>
                 </div>
             </form>
         </div>

@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 Sistem Presensi Hybrid (GPS + Foto Selfie) — skripsi Universitas Mulawarman, Teknik Elektro.
-Laravel 11 / PHP 8.2 / MySQL (XAMPP) / port 8000.
+Laravel 12 / PHP 8.2 / MySQL (XAMPP) / port 8000.
 
 ## Common Commands
 

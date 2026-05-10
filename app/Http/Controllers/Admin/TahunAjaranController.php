@@ -21,7 +21,8 @@ class TahunAjaranController extends Controller
             $query->where('semester', $request->semester);
         }
 
-        $tahunAjarans = $query->orderBy('tahun_ajaran', 'desc')->get();
+        $perPage = request('per_page', 10);
+        $tahunAjarans = $query->orderBy('tahun_ajaran', 'desc')->paginate($perPage)->withQueryString();
 
         // Mengambil daftar tahun ajaran yang unik dari database untuk pilihan di filter
         $listTahun = TahunAjaran::select('tahun_ajaran')->distinct()->pluck('tahun_ajaran');

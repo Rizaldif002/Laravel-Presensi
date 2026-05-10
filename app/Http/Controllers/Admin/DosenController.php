@@ -38,7 +38,8 @@ class DosenController extends Controller
             $query->orderBy('nip', 'asc');
         }
 
-        $dosens = $query->get();
+        $perPage = request('per_page', 10);
+        $dosens = $query->paginate($perPage)->withQueryString();
 
         return view('admin.dosen.index', compact('dosens'));
     }

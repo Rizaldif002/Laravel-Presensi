@@ -2,18 +2,16 @@
 
 namespace Database\Seeders;
 
+use App\Models\Dosen;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // 1. Buat Akun Admin Otomatis Anti-Hilang
+        // 1. Akun Admin
         User::firstOrCreate(
             ['email' => 'admin@gmail.com'],
             [
@@ -23,17 +21,28 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 2. Buat Akun Dosen Dummy untuk Testing
-        User::firstOrCreate(
+        // 2. Akun Dosen Dummy + profil dosen yang terhubung
+        $dosenUser = User::firstOrCreate(
             ['email' => 'dosen@gmail.com'],
             [
-                'name'     => 'Bapak Dosen',
+                'name'     => 'Ir. Arman Wijaya S.T., M.T.',
                 'password' => Hash::make('password'),
                 'role'     => 'dosen',
             ]
         );
 
+        Dosen::firstOrCreate(
+            ['user_id' => $dosenUser->id],
+            [
+                'nip'        => '199001012020121001',
+                'nama_dosen' => $dosenUser->name,
+            ]
+        );
+
         // 3. Akun dummy mahasiswa untuk testing API
         $this->call(MahasiswaSeeder::class);
+
+        // 4. Skenario testing sesi presensi (kelas + jadwal + sesi historis)
+        $this->call(SesiTestingSeeder::class);
     }
 }

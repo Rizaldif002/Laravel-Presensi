@@ -1,5 +1,5 @@
 <x-app-layout>
-    @section('title', 'Sesi Presensi Live')
+    @section('title', 'Sesi Presensi')
 
     {{-- Header --}}
     <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
@@ -10,7 +10,7 @@
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                     </span>
-                    <h2 class="text-xl font-extrabold text-gray-800">Sesi Presensi Aktif</h2>
+                    <h2 class="text-xl font-extrabold text-gray-800">Sesi Presensi</h2>
                 @else
                     <span class="w-3 h-3 rounded-full bg-gray-400 flex-shrink-0"></span>
                     <h2 class="text-xl font-extrabold text-gray-800">Sesi Presensi Selesai</h2>

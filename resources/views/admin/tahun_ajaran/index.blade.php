@@ -14,25 +14,33 @@
     @endphp
 
     <div class="px-5 pt-5">
-        <div class="mb-4 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <h3 class="text-lg font-semibold text-gray-700">Daftar Tahun Ajaran / Semester</h3>
-            
-            <div class="flex items-center gap-2">
-                <button onclick="document.getElementById('modalFilter').classList.remove('hidden')" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
-                    Filter Data
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                </button>
-
-                @if(request('tahun_ajaran') || request('semester'))
-                    <a href="{{ route('admin.tahun-ajaran') }}" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
-                        Reset Filter
-                    </a>
-                @endif
-
+        <div class="mb-4 flex flex-col gap-3">
+            <div class="flex justify-start">
                 <button onclick="document.getElementById('modalTambah').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Tambah Tahun Ajaran
                 </button>
+            </div>
+
+            <div class="border-t border-gray-200 pt-3 flex flex-col gap-3">
+                <div class="w-full overflow-x-auto">
+                    {{ $tahunAjarans->links() }}
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                        @include('admin.components.per-page-selector')
+                        @if(request('tahun_ajaran') || request('semester'))
+                            <a href="{{ route('admin.tahun-ajaran', array_filter(['per_page' => request('per_page')])) }}" class="bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                                Reset Filter
+                            </a>
+                        @endif
+                    </div>
+                    <button onclick="document.getElementById('modalFilter').classList.remove('hidden')" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                        Filter Data
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -50,13 +58,13 @@
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse ($tahunAjarans ?? [] as $index => $ta)
                     <tr class="odd:bg-white even:bg-gray-50 hover:bg-blue-50 transition-colors">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $tahunAjarans->firstItem() + $index }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">{{ $ta->tahun_ajaran }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-blue-600">{{ $ta->semester }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             @if($ta->is_active)
                                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> SEDANG AKTIF
+                                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Aktif
                                 </span>
                             @else
                                 <span class="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">Tidak Aktif</span>
@@ -64,6 +72,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                             <div class="flex items-center justify-center gap-2">
+                                {{-- Tombol Jadikan Aktif (atau placeholder transparan) --}}
                                 @if(!$ta->is_active)
                                 <form action="{{ route('admin.tahun-ajaran.aktif', $ta->id) }}" method="POST" class="inline">
                                     @csrf
@@ -71,10 +80,18 @@
                                         Jadikan Aktif
                                     </button>
                                 </form>
+                                @else
+                                <div class="invisible inline-flex items-center px-3 py-1.5 border border-transparent rounded-full text-xs font-medium pointer-events-none select-none">
+                                    Jadikan Aktif
+                                </div>
                                 @endif
+
+                                {{-- Tombol Edit (Selalu Ada di Tengah) --}}
                                 <button type="button" onclick="document.getElementById('modalEdit{{ $ta->id }}').classList.remove('hidden')" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs font-medium text-gray-700 hover:bg-gray-100 shadow-sm">
                                     Edit
                                 </button>
+
+                                {{-- Tombol Hapus (atau placeholder transparan) --}}
                                 @if(!$ta->is_active)
                                 <form action="{{ route('admin.tahun-ajaran.destroy', $ta->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus?');">
                                     @csrf @method('DELETE')
@@ -82,6 +99,10 @@
                                         Hapus
                                     </button>
                                 </form>
+                                @else
+                                <div class="invisible inline-flex items-center px-3 py-1.5 border border-transparent rounded-full text-xs font-medium pointer-events-none select-none">
+                                    Hapus
+                                </div>
                                 @endif
                             </div>
                         </td>
@@ -169,6 +190,9 @@
                 <button type="button" onclick="document.getElementById('modalFilter').classList.add('hidden')" class="text-gray-400 hover:text-red-500"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
             <form action="{{ route('admin.tahun-ajaran') }}" method="GET">
+                @if(request()->filled('per_page'))
+                    <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                @endif
                 <div class="p-6 space-y-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-1">Filter Tahun Ajaran</label>

@@ -19,13 +19,15 @@ class MahasiswaSeeder extends Seeder
         ];
 
         foreach ($mahasiswas as $data) {
-            User::create([
-                'name'     => $data['name'],
-                'email'    => $data['nim'] . '@mahasiswa.unmul.ac.id',
-                'nim'      => $data['nim'],
-                'password' => Hash::make('password'),
-                'role'     => 'mahasiswa',
-            ]);
+            User::firstOrCreate(
+                ['nim' => $data['nim']],
+                [
+                    'name'     => $data['name'],
+                    'email'    => $data['nim'] . '@mahasiswa.unmul.ac.id',
+                    'password' => Hash::make('password'),
+                    'role'     => 'mahasiswa',
+                ]
+            );
         }
     }
 }

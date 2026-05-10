@@ -43,7 +43,8 @@ class MahasiswaController extends Controller
             $query->orderBy('nim', 'asc');
         }
 
-        $mahasiswas = $query->get();
+        $perPage = request('per_page', 10);
+        $mahasiswas = $query->paginate($perPage)->withQueryString();
 
         return view('admin.mahasiswa.index', compact('mahasiswas'));
     }

@@ -29,30 +29,34 @@ class KelasPerkuliahanController extends Controller
 
     public function index(Request $request)
     {
-        // 1. Siapkan Query Dasar (Relasi 'ruangan' dihapus)
-        $query = KelasPerkuliahan::with(['tahunAjaran', 'mataKuliah', 'dosen'])->latest();
+        $query = KelasPerkuliahan::with(['tahunAjaran', 'mataKuliah', 'dosen'])
+            ->selectRaw('kelas_perkuliahans.*, (
+                SELECT COUNT(DISTINCT p.mahasiswa_id)
+                FROM presensis p
+                INNER JOIN sesi_presensis sp ON p.sesi_presensi_id = sp.id
+                INNER JOIN jadwal_perkuliahans jp ON sp.jadwal_perkuliahan_id = jp.id
+                WHERE jp.kelas_perkuliahan_id = kelas_perkuliahans.id
+            ) as peserta_count')
+            ->latest('kelas_perkuliahans.created_at');
 
-        // 2. Fitur Pencarian (Search)
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('nama_kelas', 'like', '%' . $search . '%')
-                    ->orWhereHas('mataKuliah', function ($q2) use ($search) {
-                        $q2->where('nama_mk', 'like', '%' . $search . '%');
-                    })
-                    ->orWhereHas('dosen', function ($q2) use ($search) {
-                        $q2->where('nama_dosen', 'like', '%' . $search . '%');
-                    });
-            });
+        if ($request->filled('tahun_ajaran_id')) {
+            $query->where('tahun_ajaran_id', $request->tahun_ajaran_id);
         }
 
-        // Eksekusi Query
-        $kelas = $query->get();
+        if ($request->filled('dosen_id')) {
+            $query->where('dosen_id', $request->dosen_id);
+        }
 
-        // Data Master untuk Modal Tambah & Edit (Query Ruangan dihapus)
-        $tahunAjarans = TahunAjaran::all();
+        if ($request->filled('mata_kuliah_id')) {
+            $query->where('mata_kuliah_id', $request->mata_kuliah_id);
+        }
+
+        $perPage  = $request->input('per_page', 10);
+        $kelas    = $query->paginate($perPage)->withQueryString();
+
+        $tahunAjarans = TahunAjaran::orderByDesc('tahun_ajaran')->get();
         $mataKuliahs  = MataKuliah::all();
-        $dosens       = Dosen::all();
+        $dosens       = Dosen::orderBy('nama_dosen')->get();
 
         return view('admin.kelas.index', compact('kelas', 'tahunAjarans', 'mataKuliahs', 'dosens'));
     }

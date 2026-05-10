@@ -13,28 +13,28 @@
             </div>
 
             <div class="border-t border-gray-200 pt-3 flex flex-col gap-3">
-
-
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="flex flex-wrap items-center gap-3">
                         @include('admin.components.per-page-selector')
+                        @if(request()->filled('tahun_ajaran_id') || request()->filled('dosen_id') || request()->filled('mata_kuliah_id'))
+                            <a href="{{ route('admin.kelas.index', array_filter(['per_page' => request('per_page')])) }}" class="inline-flex items-center gap-1 px-3 py-2 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-all">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                Reset
+                            </a>
+                        @endif
                     </div>
+
                     <div class="flex flex-wrap items-center gap-3">
-                        <form action="{{ route('admin.kelas.index') }}" method="GET" class="flex items-center w-full sm:w-auto relative">
-                            @if(request()->filled('per_page'))
-                                <input type="hidden" name="per_page" value="{{ request('per_page') }}">
+                        <button type="button" onclick="document.getElementById('modalFilter').classList.remove('hidden')" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap {{ request()->hasAny(['tahun_ajaran_id','dosen_id','mata_kuliah_id']) ? 'ring-2 ring-blue-400 border-blue-400' : '' }}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+                            Filter Kelas
+                            @if(request()->hasAny(['tahun_ajaran_id','dosen_id','mata_kuliah_id']))
+                                <span class="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white rounded-full text-xs font-bold">
+                                    {{ collect(['tahun_ajaran_id','dosen_id','mata_kuliah_id'])->filter(fn($k) => request()->filled($k))->count() }}
+                                </span>
                             @endif
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Matkul, Dosen, Kelas..." class="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                            <div class="absolute left-3 top-2.5 text-gray-400">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
-                            </div>
-                            @if(request('search'))
-                                <a href="{{ route('admin.kelas.index', array_filter(['per_page' => request('per_page')])) }}" class="ml-2 text-red-500 hover:text-red-700 text-sm font-medium whitespace-nowrap">Reset</a>
-                            @endif
-                        </form>
-                        <button type="button" onclick="document.getElementById('modalImport').classList.remove('hidden')" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all">
+                        </button>
+                        <button type="button" onclick="document.getElementById('modalImport').classList.remove('hidden')" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center gap-2 text-sm shadow-sm transition-all whitespace-nowrap">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                             Import Excel
                         </button>
@@ -51,6 +51,7 @@
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Mata Kuliah</th>
                         <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">Nama Kelas</th>
                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Dosen Pengampu</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">Jumlah Peserta</th>
                         <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">Tahun Ajaran</th>
                         <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">Aksi</th>
                     </tr>
@@ -64,7 +65,13 @@
                                 <span class="px-3 py-1 bg-blue-100 text-blue-800 font-bold rounded-md text-xs">{{ $k->nama_kelas }}</span>
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{{ $k->dosen->nama_dosen ?? 'N/A' }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-500 font-medium">{{ $k->tahunAjaran->tahun_ajaran ?? 'N/A' }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-center">
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-700 text-sm font-bold">{{ $k->peserta_count ?? 0 }}</span>
+                            </td>
+                            <td class="px-4 py-4 text-center whitespace-nowrap">
+                                <span class="block text-sm font-semibold text-gray-700">{{ $k->tahunAjaran->tahun_ajaran ?? '-' }}</span>
+                                <span class="text-xs text-blue-500">{{ $k->tahunAjaran->semester ?? '' }}</span>
+                            </td>
                             <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-center">
                                 <div class="flex items-center justify-center gap-2">
                                     <button type="button" onclick="document.getElementById('modalEdit{{ $k->id }}').classList.remove('hidden')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs font-medium text-gray-700 hover:bg-gray-100 hover:text-blue-600 shadow-sm transition-all">
@@ -131,7 +138,7 @@
                         </div>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-10 text-center text-gray-500">
+                            <td colspan="7" class="px-4 py-10 text-center text-gray-500">
                                 Belum ada data Kelas Perkuliahan.
                             </td>
                         </tr>
@@ -141,6 +148,64 @@
         </div>
         <div class="mt-4 flex justify-end">
             {{ $kelas->links() }}
+        </div>
+    </div>
+
+    {{-- Modal Filter --}}
+    <div id="modalFilter" class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-lg w-full max-w-sm mx-4 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="text-lg font-bold text-gray-800">Filter Kelas</h3>
+                <button type="button" onclick="document.getElementById('modalFilter').classList.add('hidden')" class="text-gray-400 hover:text-red-500">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form action="{{ route('admin.kelas.index') }}" method="GET" class="p-6 space-y-4">
+                @foreach(request()->except(['tahun_ajaran_id', 'dosen_id', 'mata_kuliah_id', 'page']) as $key => $val)
+                    <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                @endforeach
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tahun Ajaran</label>
+                    <select name="tahun_ajaran_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm bg-gray-50">
+                        <option value="">Semua Tahun Ajaran</option>
+                        @foreach($tahunAjarans as $ta)
+                            <option value="{{ $ta->id }}" {{ request('tahun_ajaran_id') == $ta->id ? 'selected' : '' }}>
+                                {{ $ta->tahun_ajaran }} – {{ $ta->semester }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Dosen Pengampu</label>
+                    <select name="dosen_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm bg-gray-50">
+                        <option value="">Semua Dosen</option>
+                        @foreach($dosens as $dsn)
+                            <option value="{{ $dsn->id }}" {{ request('dosen_id') == $dsn->id ? 'selected' : '' }}>
+                                {{ $dsn->nama_dosen }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Mata Kuliah</label>
+                    <select name="mata_kuliah_id" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm bg-gray-50">
+                        <option value="">Semua Mata Kuliah</option>
+                        @foreach($mataKuliahs as $mk)
+                            <option value="{{ $mk->id }}" {{ request('mata_kuliah_id') == $mk->id ? 'selected' : '' }}>
+                                {{ $mk->kode_mk }} – {{ $mk->nama_mk }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <a href="{{ route('admin.kelas.index', array_filter(['per_page' => request('per_page')])) }}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-100">Reset</a>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Terapkan</button>
+                </div>
+            </form>
         </div>
     </div>
 

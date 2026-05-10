@@ -3,16 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Dosen;
 use App\Models\JadwalPerkuliahan;
 use App\Models\KelasPerkuliahan;
 use App\Models\Ruangan;
+use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 
 class JadwalPerkuliahanController extends Controller
 {
     public function index(Request $request)
     {
-        $query = JadwalPerkuliahan::with(['kelasPerkuliahan.mataKuliah', 'kelasPerkuliahan.dosen', 'ruangan']);
+        $query = JadwalPerkuliahan::with([
+            'kelasPerkuliahan.mataKuliah',
+            'kelasPerkuliahan.dosen',
+            'kelasPerkuliahan.tahunAjaran',
+            'ruangan',
+        ]);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -31,16 +38,24 @@ class JadwalPerkuliahanController extends Controller
             $query->where('ruangan_id', $request->ruangan_id);
         }
 
-        $hariOrder = ['Senin' => 1, 'Selasa' => 2, 'Rabu' => 3, 'Kamis' => 4, 'Jumat' => 5, 'Sabtu' => 6, 'Minggu' => 7];
+        if ($request->filled('dosen_id')) {
+            $query->whereHas('kelasPerkuliahan', fn($q) => $q->where('dosen_id', $request->dosen_id));
+        }
+
+        if ($request->filled('tahun_ajaran_id')) {
+            $query->whereHas('kelasPerkuliahan', fn($q) => $q->where('tahun_ajaran_id', $request->tahun_ajaran_id));
+        }
+
         $query->orderByRaw("FIELD(hari, 'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu')")->orderBy('jam_mulai');
 
-        $perPage = $request->input('per_page', 10);
-        $jadwals = $query->paginate($perPage)->withQueryString();
+        $perPage      = $request->input('per_page', 10);
+        $jadwals      = $query->paginate($perPage)->withQueryString();
+        $kelases      = KelasPerkuliahan::with(['mataKuliah', 'dosen'])->get();
+        $ruangans     = Ruangan::orderBy('nama_ruangan')->get();
+        $dosens       = Dosen::whereHas('kelasPerkuliahan.jadwalPerkuliahans')->orderBy('nama_dosen')->get();
+        $tahunAjarans = TahunAjaran::orderByDesc('tahun_ajaran')->get();
 
-        $kelases  = KelasPerkuliahan::with(['mataKuliah', 'dosen'])->get();
-        $ruangans = Ruangan::orderBy('nama_ruangan')->get();
-
-        return view('admin.jadwal.index', compact('jadwals', 'kelases', 'ruangans'));
+        return view('admin.jadwal.index', compact('jadwals', 'kelases', 'ruangans', 'dosens', 'tahunAjarans'));
     }
 
     public function store(Request $request)
