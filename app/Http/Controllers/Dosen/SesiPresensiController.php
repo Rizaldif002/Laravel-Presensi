@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Dosen;
 
+use App\Helpers\GpsHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Dosen;
 use App\Models\JadwalPerkuliahan;
@@ -18,16 +19,6 @@ class SesiPresensiController extends Controller
         $dosen = auth()->user()->dosen;
         abort_unless($dosen, 403, 'Profil dosen Anda belum ditautkan ke akun ini. Hubungi administrator.');
         return $dosen;
-    }
-
-    private function haversine(float $lat1, float $lon1, float $lat2, float $lon2): int
-    {
-        $R    = 6371000;
-        $phi1 = deg2rad($lat1); $phi2 = deg2rad($lat2);
-        $dphi = deg2rad($lat2 - $lat1);
-        $dlam = deg2rad($lon2 - $lon1);
-        $a    = sin($dphi / 2) ** 2 + cos($phi1) * cos($phi2) * sin($dlam / 2) ** 2;
-        return (int) round($R * 2 * atan2(sqrt($a), sqrt(1 - $a)));
     }
 
     public function index(Request $request)
@@ -189,7 +180,7 @@ class SesiPresensiController extends Controller
             $dalamRadius  = null;
 
             if ($p->latitude && $p->longitude && $latRuangan && $lngRuangan) {
-                $jarak       = $this->haversine((float) $p->latitude, (float) $p->longitude, $latRuangan, $lngRuangan);
+                $jarak       = (int) round(GpsHelper::hitungJarak((float) $p->latitude, (float) $p->longitude, $latRuangan, $lngRuangan));
                 $dalamRadius = $jarak <= $radius;
             }
 

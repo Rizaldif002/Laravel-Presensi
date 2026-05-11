@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Imports\MahasiswaImport;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MahasiswaController extends Controller
@@ -76,18 +77,34 @@ class MahasiswaController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'nim'           => 'required|unique:mahasiswas,nim,' . $id,
-            'nama_lengkap'  => 'required',
-            'program_studi' => 'required',
+            'nim'            => 'required|unique:mahasiswas,nim,' . $id,
+            'nama_lengkap'   => 'required',
+            'program_studi'  => 'required',
+            'foto_referensi' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ], [
-            'nim.unique'              => 'NIM ini sudah terdaftar!',
-            'nim.required'            => 'NIM wajib diisi.',
-            'nama_lengkap.required'   => 'Nama lengkap wajib diisi.',
-            'program_studi.required'  => 'Program Studi wajib diisi.',
+            'nim.unique'             => 'NIM ini sudah terdaftar!',
+            'nim.required'           => 'NIM wajib diisi.',
+            'nama_lengkap.required'  => 'Nama lengkap wajib diisi.',
+            'program_studi.required' => 'Program Studi wajib diisi.',
+            'foto_referensi.image'   => 'File harus berupa gambar.',
+            'foto_referensi.max'     => 'Ukuran foto maksimal 2MB.',
         ]);
 
         $mahasiswa = Mahasiswa::findOrFail($id);
-        $mahasiswa->update($request->only('nim', 'nama_lengkap', 'program_studi', 'no_hp'));
+        $data = $request->only('nim', 'nama_lengkap', 'program_studi', 'no_hp');
+
+        if ($request->hasFile('foto_referensi')) {
+            // Hapus foto lama jika ada
+            if ($mahasiswa->foto_referensi) {
+                Storage::disk('local')->delete($mahasiswa->foto_referensi);
+            }
+            $nim  = $request->nim ?: $mahasiswa->nim;
+            $path = $request->file('foto_referensi')
+                ->storeAs('wajah-referensi', $nim . '.jpg', 'local');
+            $data['foto_referensi'] = $path;
+        }
+
+        $mahasiswa->update($data);
 
         return redirect()->back()->with('success', 'Data Mahasiswa berhasil diperbarui!');
     }

@@ -96,7 +96,7 @@
                                         </svg>
                                     </button>
                                 </div>
-                                <form action="{{ route('admin.mahasiswa.update', $mhs->id) }}" method="POST">
+                                <form action="{{ route('admin.mahasiswa.update', $mhs->id) }}" method="POST" enctype="multipart/form-data">
                                     @csrf
                                     @method('PUT')
                                     <div class="p-6 space-y-4">
@@ -115,6 +115,26 @@
                                         <div>
                                             <label class="block text-sm font-semibold text-gray-700 mb-1">No. HP</label>
                                             <input type="text" name="no_hp" value="{{ $mhs->no_hp }}" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                                Foto Referensi Wajah
+                                                <span class="text-xs font-normal text-gray-400 ml-1">(untuk Face Recognition)</span>
+                                            </label>
+                                            @if($mhs->foto_referensi)
+                                                <p class="text-xs text-emerald-600 font-medium mb-1.5 flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                    Foto sudah ada — upload baru untuk mengganti
+                                                </p>
+                                            @else
+                                                <p class="text-xs text-amber-600 font-medium mb-1.5 flex items-center gap-1">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    Belum ada foto referensi
+                                                </p>
+                                            @endif
+                                            <input type="file" name="foto_referensi" accept="image/jpg,image/jpeg,image/png"
+                                                   class="w-full text-sm text-gray-600 border border-gray-200 rounded-lg file:mr-3 file:py-1.5 file:px-3 file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                                            <p class="text-xs text-gray-400 mt-1">Format: JPG/PNG · Maks 2MB · Wajah harus terlihat jelas</p>
                                         </div>
                                     </div>
                                     <div class="px-6 py-4 bg-gray-50 flex justify-end gap-2">

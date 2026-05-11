@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\JadwalPerkuliahan;
 use App\Models\Mahasiswa;
+use App\Models\PesertaKelas;
 use App\Models\SesiPresensi;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,13 +26,24 @@ class JadwalApiController extends Controller
     {
         $hariIni = self::$hariMap[now()->format('l')];
 
+        $mahasiswa = Mahasiswa::where('nim', $request->user()->nim)->first();
+        if (! $mahasiswa) {
+            return response()->json(['status' => false, 'message' => 'Data mahasiswa tidak ditemukan.', 'data' => []], 404);
+        }
+
+        $kelasIds = PesertaKelas::where('mahasiswa_id', $mahasiswa->id)
+            ->pluck('kelas_perkuliahan_id');
+
         $jadwals = JadwalPerkuliahan::with([
             'kelasPerkuliahan.mataKuliah',
             'kelasPerkuliahan.dosen',
             'kelasPerkuliahan.tahunAjaran',
             'ruangan',
             'sesiPresensis' => fn ($q) => $q->where('status', 'aktif')->latest()->limit(1),
-        ])->where('hari', $hariIni)->get();
+        ])
+        ->where('hari', $hariIni)
+        ->whereIn('kelas_perkuliahan_id', $kelasIds)
+        ->get();
 
         $data = $jadwals->map(function ($jadwal) {
             $sesiAktif = $jadwal->sesiPresensis->first();

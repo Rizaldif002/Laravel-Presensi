@@ -18,8 +18,18 @@ class Presensi extends Model
         'waktu_absen',
         'latitude',
         'longitude',
+        'jarak_meter',
         'foto_wajah',
+        'face_confidence',
+        'face_verified',
+        'alasan_ditolak',
+        'override_by',
         'status_kehadiran',
+    ];
+
+    protected $casts = [
+        'face_verified' => 'boolean',
+        'waktu_absen'   => 'datetime',
     ];
 
     // Relasi: Data absen ini milik Sesi yang mana?

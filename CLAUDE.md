@@ -186,12 +186,15 @@ Bug yang belum diperbaiki ada di **API layer** — lihat ROADMAP.md untuk detail
 
 ### 🔲 Belum Selesai — Laravel (KERJAKAN URUT)
 
-- [ ] Migration perbaikan tabel `presensis` (tipe kolom + kolom yang hilang)
-- [ ] Ekstrak GpsHelper ke `app/Helpers/GpsHelper.php`
-- [ ] PresensiApiController.store() — 8 langkah validasi berurutan (A–H)
-- [ ] PresensiApiController.riwayat() — daftar presensi mahasiswa
-- [ ] Fix JadwalApiController.hariIni() — filter kelas yang diikuti mahasiswa
-- [ ] FaceRecognitionService — `app/Services/FaceRecognitionService.php`
+- [x] Migration perbaikan tabel `presensis` (tipe DECIMAL, nullable foto_wajah, enum 3 nilai, kolom baru)
+- [x] Migration tambah kolom `foto_referensi` di tabel `mahasiswas`
+- [x] GpsHelper — `app/Helpers/GpsHelper.php` (Haversine diekstrak dari Dosen controller)
+- [x] StorePresensiRequest — `app/Http/Requests/StorePresensiRequest.php`
+- [x] PresensiApiController.store() — 8 langkah validasi A–H fully implemented
+- [x] PresensiApiController.riwayat() — daftar presensi mahasiswa yang login
+- [x] Fix JadwalApiController.hariIni() — filter kelas yang diikuti mahasiswa (via peserta_kelas)
+- [x] MahasiswaController.update() — upload foto referensi wajah ke private storage
+- [ ] FaceRecognitionService — `app/Services/FaceRecognitionService.php` (validasi inline sudah ada di PresensiApiController)
 - [ ] Laporan Presensi halaman lengkap + Export PDF (DomPDF)
 - [ ] Validasi Manual Presensi oleh Dosen (override di panel dosen)
 
