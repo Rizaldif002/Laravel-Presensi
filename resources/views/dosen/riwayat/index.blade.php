@@ -1,0 +1,134 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">Riwayat Presensi</h2>
+    </x-slot>
+
+    <div class="px-5 pt-5" x-data="{ modalFilter: false }">
+
+        {{-- Toolbar --}}
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-3">
+                @include('admin.components.per-page-selector')
+                @if(request()->hasAny(['tahun_ajaran_id','mata_kuliah_id']))
+                    <a href="{{ route('dosen.riwayat.index', array_filter(['per_page' => request('per_page')])) }}"
+                       class="inline-flex items-center gap-1 px-3 py-2 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-all">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        Reset
+                    </a>
+                @endif
+            </div>
+            <button @click="modalFilter = true"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-white border text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium shadow-sm transition-all whitespace-nowrap
+                {{ request()->hasAny(['tahun_ajaran_id','mata_kuliah_id']) ? 'ring-2 ring-blue-400 border-blue-400' : 'border-gray-300' }}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+                Filter Riwayat
+                @php $filterCount = collect(['tahun_ajaran_id','mata_kuliah_id'])->filter(fn($k) => request()->filled($k))->count(); @endphp
+                @if($filterCount > 0)
+                    <span class="inline-flex items-center justify-center w-4 h-4 bg-blue-500 text-white rounded-full text-xs font-bold">{{ $filterCount }}</span>
+                @endif
+            </button>
+        </div>
+
+        {{-- Tabel --}}
+        <div class="overflow-x-auto bg-white rounded-xl border border-gray-200 shadow-sm">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">No</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Mata Kuliah</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">Nama Kelas</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">Tahun Ajaran</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">Pertemuan</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">Peserta</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-gray-500 uppercase">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    @forelse($kelasList as $i => $k)
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-4 py-4 text-sm text-gray-500">{{ $kelasList->firstItem() + $i }}</td>
+                        <td class="px-4 py-4">
+                            <p class="text-sm font-bold text-gray-800">{{ $k->mataKuliah->nama_mk ?? '-' }}</p>
+                            <p class="text-xs text-gray-400">{{ $k->mataKuliah->kode_mk ?? '' }}</p>
+                        </td>
+                        <td class="px-4 py-4 text-center text-sm font-semibold text-gray-700">{{ $k->nama_kelas }}</td>
+                        <td class="px-4 py-4 text-center">
+                            <p class="text-sm font-semibold text-gray-700">{{ $k->tahunAjaran->tahun_ajaran ?? '-' }}</p>
+                            <p class="text-xs text-blue-500 font-medium">{{ $k->tahunAjaran->semester ?? '' }}</p>
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 text-sm font-bold">
+                                {{ $k->total_pertemuan }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 text-sm font-bold">
+                                {{ $k->total_peserta }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            <a href="{{ route('dosen.riwayat.show', $k->id) }}"
+                               class="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-full shadow-sm transition-all">
+                                Detail Presensi
+                            </a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="px-4 py-12 text-center text-sm text-gray-400">Belum ada data riwayat presensi.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4 pb-4 flex justify-end">
+            {{ $kelasList->links() }}
+        </div>
+
+        {{-- Modal Filter --}}
+        <div x-show="modalFilter" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" style="display:none">
+            <div @click.outside="modalFilter = false" class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-base font-bold text-gray-800">Filter Riwayat</h3>
+                    <button @click="modalFilter = false" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <form action="{{ route('dosen.riwayat.index') }}" method="GET" class="space-y-4">
+                    @foreach(request()->except(['tahun_ajaran_id','mata_kuliah_id','page']) as $key => $val)
+                        <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                    @endforeach
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Tahun Ajaran</label>
+                        <select name="tahun_ajaran_id" class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm text-gray-700 bg-white focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Semua Tahun Ajaran</option>
+                            @foreach($tahunAjarans as $ta)
+                                <option value="{{ $ta->id }}" {{ request('tahun_ajaran_id') == $ta->id ? 'selected' : '' }}>
+                                    {{ $ta->tahun_ajaran }} — {{ $ta->semester }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">Mata Kuliah</label>
+                        <select name="mata_kuliah_id" class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm text-gray-700 bg-white focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Semua Mata Kuliah</option>
+                            @foreach($mataKuliahs as $mk)
+                                <option value="{{ $mk->id }}" {{ request('mata_kuliah_id') == $mk->id ? 'selected' : '' }}>{{ $mk->nama_mk }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <a href="{{ route('dosen.riwayat.index') }}" class="flex-1 text-center py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">Reset</a>
+                        <button type="submit" class="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-all">Terapkan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</x-app-layout>

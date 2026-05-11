@@ -3,12 +3,39 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Dosen;
+use App\Models\KelasPerkuliahan;
 use App\Models\SesiPresensi;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class SesiPresensiController extends Controller
 {
+    public function index(Request $request)
+    {
+        $query = SesiPresensi::with([
+            'jadwalPerkuliahan.kelasPerkuliahan.mataKuliah',
+            'jadwalPerkuliahan.kelasPerkuliahan.dosen',
+            'jadwalPerkuliahan.ruangan',
+            'presensis',
+        ])->latest();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('dosen_id')) {
+            $query->whereHas('jadwalPerkuliahan.kelasPerkuliahan', fn($q) => $q->where('dosen_id', $request->dosen_id));
+        }
+
+        $sesis   = $query->paginate(15)->withQueryString();
+        $dosens  = Dosen::orderBy('nama_dosen')->get();
+        $statAktif   = SesiPresensi::where('status', 'aktif')->count();
+        $statSelesai = SesiPresensi::where('status', 'selesai')->count();
+
+        return view('admin.sesi.index', compact('sesis', 'dosens', 'statAktif', 'statSelesai'));
+    }
+
     // 1. Fungsi untuk Membuka Sesi Absen
     public function store(Request $request)
     {

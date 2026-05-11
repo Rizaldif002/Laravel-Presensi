@@ -31,11 +31,8 @@ class KelasPerkuliahanController extends Controller
     {
         $query = KelasPerkuliahan::with(['tahunAjaran', 'mataKuliah', 'dosen'])
             ->selectRaw('kelas_perkuliahans.*, (
-                SELECT COUNT(DISTINCT p.mahasiswa_id)
-                FROM presensis p
-                INNER JOIN sesi_presensis sp ON p.sesi_presensi_id = sp.id
-                INNER JOIN jadwal_perkuliahans jp ON sp.jadwal_perkuliahan_id = jp.id
-                WHERE jp.kelas_perkuliahan_id = kelas_perkuliahans.id
+                SELECT COUNT(*) FROM peserta_kelas
+                WHERE peserta_kelas.kelas_perkuliahan_id = kelas_perkuliahans.id
             ) as peserta_count')
             ->latest('kelas_perkuliahans.created_at');
 

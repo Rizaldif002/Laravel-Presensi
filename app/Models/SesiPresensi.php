@@ -12,9 +12,13 @@ class SesiPresensi extends Model
     // 1. Pastikan jadwal_perkuliahan_id masuk di sini!
     protected $fillable = [
         'jadwal_perkuliahan_id',
+        'nama_pertemuan',
+        'is_gps_enabled',
+        'gps_reason',
+        'dibuka_oleh',
         'status',
         'waktu_buka',
-        'waktu_tutup'
+        'waktu_tutup',
     ];
 
     // 2. Sesuaikan juga nama relasinya agar tidak error di kemudian hari

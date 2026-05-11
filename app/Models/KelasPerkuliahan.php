@@ -38,4 +38,9 @@ class KelasPerkuliahan extends Model
     {
         return $this->hasMany(JadwalPerkuliahan::class, 'kelas_perkuliahan_id');
     }
+
+    public function pesertaKelas()
+    {
+        return $this->hasMany(PesertaKelas::class, 'kelas_perkuliahan_id');
+    }
 }

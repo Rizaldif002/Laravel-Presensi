@@ -12,7 +12,9 @@ use App\Http\Controllers\Admin\KelasPerkuliahanController;
 use App\Http\Controllers\Admin\JadwalPerkuliahanController;
 use App\Http\Controllers\Admin\SesiPresensiController;
 use App\Http\Controllers\Dosen\SesiPresensiController as DosenSesiController;
-use App\Http\Controllers\RiwayatPresensiController;
+use App\Http\Controllers\Admin\RiwayatPresensiController as AdminRiwayatController;
+use App\Http\Controllers\Admin\PesertaKelasController;
+use App\Http\Controllers\Dosen\RiwayatPresensiController as DosenRiwayatController;
 
 // ==========================================
 // 1. Halaman Depan (Public)
@@ -78,10 +80,21 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('kelas', KelasPerkuliahanController::class)->names('admin.kelas');
     Route::resource('jadwal', JadwalPerkuliahanController::class)->names('admin.jadwal');
 
+    // Peserta Kelas (nested under kelas)
+    Route::prefix('kelas/{kelas}')->name('admin.kelas.peserta.')->group(function () {
+        Route::get('peserta',              [PesertaKelasController::class, 'index'])->name('index');
+        Route::post('peserta',             [PesertaKelasController::class, 'store'])->name('store');
+        Route::post('peserta/import',      [PesertaKelasController::class, 'import'])->name('import');
+        Route::delete('peserta/{peserta_id}', [PesertaKelasController::class, 'destroy'])->name('destroy');
+    });
+
     // Riwayat & Laporan
-    Route::get('/riwayat-presensi', [RiwayatPresensiController::class, 'index'])->name('admin.riwayat.index');
+    Route::get('/riwayat-presensi', [AdminRiwayatController::class, 'index'])->name('admin.riwayat.index');
+    Route::get('/riwayat-presensi/{kelas}', [AdminRiwayatController::class, 'show'])->name('admin.riwayat.show');
     Route::get('/laporan-presensi', fn () => 'Halaman Laporan Presensi (Sedang Dibangun)')
         ->name('admin.laporan.presensi');
+    Route::post('riwayat/override', [AdminRiwayatController::class, 'overridePresensi'])
+        ->name('admin.riwayat.override');
 
     // Sesi Presensi (untuk admin monitor)
     Route::get('/sesi-presensi', [SesiPresensiController::class, 'index'])->name('admin.sesi.index');
@@ -94,11 +107,14 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 // 4. AREA DOSEN
 // ==========================================
 Route::prefix('dosen')->middleware(['auth', 'role:dosen'])->name('dosen.')->group(function () {
-    Route::get('/sesi',             [DosenSesiController::class, 'index'])->name('sesi.index');
-    Route::post('/sesi/buka',       [DosenSesiController::class, 'buka'])->name('sesi.buka');
-    Route::get('/sesi/{id}',        [DosenSesiController::class, 'show'])->name('sesi.show');
-    Route::post('/sesi/{id}/tutup', [DosenSesiController::class, 'tutup'])->name('sesi.tutup');
-    Route::get('/riwayat-presensi', [RiwayatPresensiController::class, 'index'])->name('riwayat.index');
+    Route::get('/sesi',                       [DosenSesiController::class, 'index'])->name('sesi.index');
+    Route::post('/sesi',                      [DosenSesiController::class, 'store'])->name('sesi.store');
+    Route::get('/sesi/{sesi}',                [DosenSesiController::class, 'show'])->name('sesi.show');
+    Route::post('/sesi/{sesi}/tutup',         [DosenSesiController::class, 'tutup'])->name('sesi.tutup');
+    Route::get('/sesi/{sesi}/live',           [DosenSesiController::class, 'live'])->name('sesi.live');
+    Route::get('/sesi/{sesi}/live-data',      [DosenSesiController::class, 'liveData'])->name('sesi.live-data');
+    Route::get('/riwayat-presensi',           [DosenRiwayatController::class, 'index'])->name('riwayat.index');
+    Route::get('/riwayat-presensi/{kelas}',   [DosenRiwayatController::class, 'show'])->name('riwayat.show');
 });
 
 require __DIR__ . '/auth.php';

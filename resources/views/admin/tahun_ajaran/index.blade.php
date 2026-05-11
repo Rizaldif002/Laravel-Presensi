@@ -72,37 +72,39 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
                             <div class="flex items-center justify-center gap-2">
-                                {{-- Tombol Jadikan Aktif (atau placeholder transparan) --}}
+                                {{-- Tombol Jadikan Aktif (atau placeholder) --}}
                                 @if(!$ta->is_active)
-                                <form action="{{ route('admin.tahun-ajaran.aktif', $ta->id) }}" method="POST" class="inline">
+                                <form action="{{ route('admin.tahun-ajaran.aktif', $ta->id) }}" method="POST" class="m-0">
                                     @csrf
-                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-green-50 border border-green-200 rounded-full text-xs font-medium text-green-700 hover:bg-green-100 shadow-sm">
-                                        Jadikan Aktif
+                                    <button type="submit"
+                                            class="inline-flex items-center justify-center w-9 h-9 bg-green-100 text-green-600 rounded-md hover:bg-green-600 hover:text-white transition-colors shadow-sm"
+                                            title="Jadikan Aktif">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                     </button>
                                 </form>
                                 @else
-                                <div class="invisible inline-flex items-center px-3 py-1.5 border border-transparent rounded-full text-xs font-medium pointer-events-none select-none">
-                                    Jadikan Aktif
-                                </div>
+                                <div class="w-9 h-9"></div>
                                 @endif
 
-                                {{-- Tombol Edit (Selalu Ada di Tengah) --}}
-                                <button type="button" onclick="document.getElementById('modalEdit{{ $ta->id }}').classList.remove('hidden')" class="inline-flex items-center px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs font-medium text-gray-700 hover:bg-gray-100 shadow-sm">
-                                    Edit
+                                {{-- Tombol Edit --}}
+                                <button type="button" onclick="document.getElementById('modalEdit{{ $ta->id }}').classList.remove('hidden')"
+                                        class="inline-flex items-center justify-center w-9 h-9 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-700 hover:text-white transition-colors shadow-sm"
+                                        title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
 
-                                {{-- Tombol Hapus (atau placeholder transparan) --}}
+                                {{-- Tombol Hapus (atau placeholder) --}}
                                 @if(!$ta->is_active)
-                                <form action="{{ route('admin.tahun-ajaran.destroy', $ta->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus?');">
+                                <form action="{{ route('admin.tahun-ajaran.destroy', $ta->id) }}" method="POST" class="m-0" onsubmit="return confirm('Yakin ingin menghapus?');">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-white border border-red-200 rounded-full text-xs font-medium text-red-600 hover:bg-red-50 shadow-sm">
-                                        Hapus
+                                    <button type="submit"
+                                            class="inline-flex items-center justify-center w-9 h-9 bg-red-100 text-red-600 rounded-md hover:bg-red-600 hover:text-white transition-colors shadow-sm"
+                                            title="Hapus">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </form>
                                 @else
-                                <div class="invisible inline-flex items-center px-3 py-1.5 border border-transparent rounded-full text-xs font-medium pointer-events-none select-none">
-                                    Hapus
-                                </div>
+                                <div class="w-9 h-9"></div>
                                 @endif
                             </div>
                         </td>

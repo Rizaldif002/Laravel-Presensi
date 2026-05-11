@@ -110,7 +110,7 @@
         @php
             $penggunaOpen      = request()->routeIs('admin.dosen', 'admin.mahasiswa');
             $akademikOpen      = request()->routeIs('admin.ruangan', 'admin.mata-kuliah', 'admin.tahun-ajaran', 'admin.kelas.*', 'admin.jadwal.*');
-            $presensiAdminOpen = request()->routeIs('admin.sesi.*', 'admin.riwayat.index');
+            $presensiAdminOpen = request()->routeIs('admin.sesi.*', 'admin.riwayat.*');
         @endphp
 
         {{-- ── MASTER DATA Section ── --}}
@@ -320,8 +320,8 @@
 
                 <a href="{{ route('admin.riwayat.index') }}"
                    class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-base transition-all duration-300
-                          {{ request()->routeIs('admin.riwayat.index') ? 'bg-blue-700/50 text-white font-semibold' : 'text-blue-200/80 hover:text-white hover:bg-blue-800/50' }}">
-                    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 {{ request()->routeIs('admin.riwayat.index') ? 'bg-white' : 'bg-blue-400/50' }}"></span>
+                          {{ request()->routeIs('admin.riwayat.*') ? 'bg-blue-700/50 text-white font-semibold' : 'text-blue-200/80 hover:text-white hover:bg-blue-800/50' }}">
+                    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 {{ request()->routeIs('admin.riwayat.*') ? 'bg-white' : 'bg-blue-400/50' }}"></span>
                     Riwayat Presensi
                 </a>
             </div>
@@ -367,7 +367,7 @@
 
             @php
                 $dosenAkademikOpen = request()->routeIs('dosen.sesi.index');
-                $dosenPresensiOpen = request()->routeIs('dosen.sesi.*', 'dosen.riwayat.index');
+                $dosenPresensiOpen = request()->routeIs('dosen.sesi.*', 'dosen.riwayat.*');
             @endphp
 
             {{-- ── AKADEMIK Section ── --}}
@@ -490,8 +490,8 @@
 
                     <a href="{{ route('dosen.riwayat.index') }}"
                        class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-base transition-all duration-300
-                              {{ request()->routeIs('dosen.riwayat.index') ? 'bg-blue-700/50 text-white font-semibold' : 'text-blue-200/80 hover:text-white hover:bg-blue-800/50' }}">
-                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 {{ request()->routeIs('dosen.riwayat.index') ? 'bg-white' : 'bg-blue-400/50' }}"></span>
+                              {{ request()->routeIs('dosen.riwayat.*') ? 'bg-blue-700/50 text-white font-semibold' : 'text-blue-200/80 hover:text-white hover:bg-blue-800/50' }}">
+                        <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 {{ request()->routeIs('dosen.riwayat.*') ? 'bg-white' : 'bg-blue-400/50' }}"></span>
                         Riwayat Presensi
                     </a>
                 </div>
