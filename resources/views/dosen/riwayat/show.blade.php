@@ -15,14 +15,28 @@
                     {{ $kelas->tahunAjaran->tahun_ajaran ?? '-' }} {{ $kelas->tahunAjaran->semester ?? '' }}
                 </p>
             </div>
-            <button disabled class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-400 text-sm font-semibold rounded-lg cursor-not-allowed">
+            <a href="{{ route('dosen.riwayat.pdf', $kelas->id) }}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 Export PDF
-            </button>
+            </a>
         </div>
     </x-slot>
 
-    <div class="px-5 pt-5 pb-8" x-data="{ search: '' }">
+    <div class="px-5 pt-5 pb-8"
+         x-data="{
+            search: '',
+            showOverrideModal: false,
+            mhsName: '',
+            sesiId: '',
+            mhsId: '',
+            openModal(sId, mId, name) {
+                this.sesiId = sId;
+                this.mhsId  = mId;
+                this.mhsName = name;
+                this.showOverrideModal = true;
+            }
+         }">
 
         {{-- Summary cards --}}
         <div class="grid grid-cols-3 gap-4 mb-5">
@@ -35,7 +49,7 @@
                 <p class="text-2xl font-extrabold text-emerald-600">{{ $mahasiswas->count() }}</p>
             </div>
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Total Hadir</p>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Total Kehadiran</p>
                 <p class="text-2xl font-extrabold text-gray-700">
                     {{ collect($matrix)->sum('hadir') }}
                 </p>
@@ -74,16 +88,15 @@
                                 </span>
                             </th>
                             @endforeach
-                            <th class="px-3 py-3 text-center font-bold text-emerald-600 uppercase min-w-[56px]">H</th>
-                            <th class="px-3 py-3 text-center font-bold text-red-500 uppercase min-w-[56px]">A</th>
-                            <th class="px-3 py-3 text-center font-bold text-gray-500 uppercase min-w-[64px]">%</th>
+                            <th class="px-3 py-3 text-center font-bold text-emerald-600 uppercase min-w-[48px]">H</th>
+                            <th class="px-3 py-3 text-center font-bold text-red-500 uppercase min-w-[48px]">A</th>
+                            <th class="px-3 py-3 text-center font-bold text-gray-500 uppercase min-w-[56px]">%</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white">
                         @forelse($mahasiswas as $no => $m)
                         @php
-                            $row = $matrix[$m->id] ?? ['hadir' => 0, 'alpa' => 0, 'sesi' => []];
-                            $pct = $sesiList->count() > 0 ? round($row['hadir'] / $sesiList->count() * 100) : 0;
+                            $row = $matrix[$m->id] ?? ['hadir' => 0, 'alpa' => 0, 'pct' => 0, 'sesi' => []];
                         @endphp
                         <tr class="hover:bg-gray-50 transition-colors"
                             x-show="search === '' || '{{ strtolower($m->nama_lengkap) }}'.includes(search.toLowerCase()) || '{{ $m->nim }}'.includes(search)">
@@ -93,23 +106,31 @@
                             @foreach($sesiList as $sesi)
                             @php $status = $row['sesi'][$sesi->id] ?? 'A'; @endphp
                             <td class="px-2 py-3 text-center">
-                                @if($status === 'H')
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">H</span>
-                                @else
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-600 font-bold">A</span>
-                                @endif
+                                <button type="button"
+                                    @click="openModal('{{ $sesi->id }}', '{{ $m->id }}', '{{ addslashes($m->nama_lengkap) }}')"
+                                    class="focus:outline-none transition-transform hover:scale-125">
+                                    @if($status === 'H')
+                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 font-bold">H</span>
+                                    @elseif($status === 'S')
+                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 text-blue-700 font-bold">S</span>
+                                    @elseif($status === 'I')
+                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-100 text-amber-700 font-bold">I</span>
+                                    @else
+                                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-600 font-bold">A</span>
+                                    @endif
+                                </button>
                             </td>
                             @endforeach
                             <td class="px-3 py-3 text-center font-bold text-emerald-600">{{ $row['hadir'] }}</td>
                             <td class="px-3 py-3 text-center font-bold text-red-500">{{ $row['alpa'] }}</td>
                             <td class="px-3 py-3 text-center">
-                                <span class="font-semibold {{ $pct >= 75 ? 'text-emerald-600' : 'text-red-500' }}">{{ $pct }}%</span>
+                                <span class="font-semibold {{ $row['pct'] >= 75 ? 'text-emerald-600' : 'text-red-500' }}">{{ $row['pct'] }}%</span>
                             </td>
                         </tr>
                         @empty
                         <tr>
                             <td colspan="{{ 6 + $sesiList->count() }}" class="px-4 py-12 text-center text-gray-400">
-                                Belum ada mahasiswa yang absen di kelas ini.
+                                Belum ada mahasiswa yang terdaftar di kelas ini.
                             </td>
                         </tr>
                         @endforelse
@@ -125,15 +146,74 @@
                 Hadir
             </span>
             <span class="flex items-center gap-1.5">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-bold text-xs">S</span>
+                Sakit
+            </span>
+            <span class="flex items-center gap-1.5">
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-700 font-bold text-xs">I</span>
+                Izin
+            </span>
+            <span class="flex items-center gap-1.5">
                 <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-600 font-bold text-xs">A</span>
-                Alpa (tidak hadir)
+                Alpa
             </span>
             <span class="flex items-center gap-1.5 ml-auto">
-                <span class="text-emerald-600 font-semibold">%</span>
-                Persentase kehadiran &mdash; merah jika &lt;75%
+                <span class="text-gray-400">Klik sel untuk ubah status</span>
             </span>
         </div>
 
         @endif
+
+        {{-- MODAL OVERRIDE --}}
+        <div x-show="showOverrideModal"
+             x-cloak
+             class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+
+            <div @click.away="showOverrideModal = false"
+                 class="bg-white rounded-[1rem] shadow-2xl w-full max-w-md p-8 text-center transform transition-all border border-gray-100">
+
+                <div class="w-20 h-20 rounded-full border-4 border-orange-100 text-orange-400 flex items-center justify-center mx-auto mb-5 bg-orange-50">
+                    <span class="text-4xl font-bold italic">!</span>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-800 mb-2 leading-tight">
+                    Ubah status kehadiran mahasiswa?
+                </h3>
+                <p class="text-sm text-gray-500 mb-8 px-4">
+                    Anda akan mengubah status absen
+                    <span class="font-bold text-gray-900 mt-1 block" x-text="mhsName"></span>
+                </p>
+
+                <form action="{{ route('dosen.riwayat.override') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="sesi_id" x-model="sesiId">
+                    <input type="hidden" name="mahasiswa_id" x-model="mhsId">
+
+                    <div class="flex items-center justify-center gap-2 overflow-x-auto pb-2">
+                        <button type="button" @click="showOverrideModal = false"
+                                class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-lg transition-all min-w-[64px]">
+                            Batal
+                        </button>
+                        <button type="submit" name="status" value="S"
+                                class="px-4 py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold rounded-lg shadow-lg shadow-blue-500/20 min-w-[64px]">
+                            Sakit
+                        </button>
+                        <button type="submit" name="status" value="I"
+                                class="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-white text-xs font-bold rounded-lg shadow-lg shadow-amber-400/20 min-w-[64px]">
+                            Izin
+                        </button>
+                        <button type="submit" name="status" value="H"
+                                class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold rounded-lg shadow-lg shadow-emerald-500/20 min-w-[64px]">
+                            Hadir
+                        </button>
+                        <button type="submit" name="status" value="A"
+                                class="px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-lg shadow-lg shadow-red-500/20 min-w-[64px]">
+                            Alpa
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 </x-app-layout>

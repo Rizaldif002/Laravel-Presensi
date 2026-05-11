@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\JadwalPerkuliahanController;
 use App\Http\Controllers\Admin\SesiPresensiController;
 use App\Http\Controllers\Dosen\SesiPresensiController as DosenSesiController;
 use App\Http\Controllers\Admin\RiwayatPresensiController as AdminRiwayatController;
+use App\Http\Controllers\Admin\LaporanPresensiController;
 use App\Http\Controllers\Admin\PesertaKelasController;
 use App\Http\Controllers\Dosen\RiwayatPresensiController as DosenRiwayatController;
 
@@ -91,10 +92,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     // Riwayat & Laporan
     Route::get('/riwayat-presensi', [AdminRiwayatController::class, 'index'])->name('admin.riwayat.index');
     Route::get('/riwayat-presensi/{kelas}', [AdminRiwayatController::class, 'show'])->name('admin.riwayat.show');
-    Route::get('/laporan-presensi', fn () => 'Halaman Laporan Presensi (Sedang Dibangun)')
-        ->name('admin.laporan.presensi');
-    Route::post('riwayat/override', [AdminRiwayatController::class, 'overridePresensi'])
-        ->name('admin.riwayat.override');
+    Route::post('riwayat/override', [AdminRiwayatController::class, 'overridePresensi'])->name('admin.riwayat.override');
+    Route::get('/laporan-presensi', [LaporanPresensiController::class, 'index'])->name('admin.laporan.presensi');
+    Route::get('/laporan-presensi/{kelas}/pdf', [LaporanPresensiController::class, 'exportPdf'])->name('admin.laporan.pdf');
 
     // Sesi Presensi (untuk admin monitor)
     Route::get('/sesi-presensi', [SesiPresensiController::class, 'index'])->name('admin.sesi.index');
@@ -113,8 +113,10 @@ Route::prefix('dosen')->middleware(['auth', 'role:dosen'])->name('dosen.')->grou
     Route::post('/sesi/{sesi}/tutup',         [DosenSesiController::class, 'tutup'])->name('sesi.tutup');
     Route::get('/sesi/{sesi}/live',           [DosenSesiController::class, 'live'])->name('sesi.live');
     Route::get('/sesi/{sesi}/live-data',      [DosenSesiController::class, 'liveData'])->name('sesi.live-data');
-    Route::get('/riwayat-presensi',           [DosenRiwayatController::class, 'index'])->name('riwayat.index');
-    Route::get('/riwayat-presensi/{kelas}',   [DosenRiwayatController::class, 'show'])->name('riwayat.show');
+    Route::get('/riwayat-presensi',              [DosenRiwayatController::class, 'index'])->name('riwayat.index');
+    Route::post('/riwayat-presensi/override',    [DosenRiwayatController::class, 'overridePresensi'])->name('riwayat.override');
+    Route::get('/riwayat-presensi/{kelas}',      [DosenRiwayatController::class, 'show'])->name('riwayat.show');
+    Route::get('/riwayat-presensi/{kelas}/pdf',  [DosenRiwayatController::class, 'exportPdf'])->name('riwayat.pdf');
 });
 
 require __DIR__ . '/auth.php';

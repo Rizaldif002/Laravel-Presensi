@@ -7,9 +7,11 @@ use App\Models\Dosen;
 use App\Models\KelasPerkuliahan;
 use App\Models\Mahasiswa;
 use App\Models\MataKuliah;
+use App\Models\PesertaKelas;
 use App\Models\Presensi;
 use App\Models\SesiPresensi;
 use App\Models\TahunAjaran;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class RiwayatPresensiController extends Controller
@@ -72,8 +74,8 @@ class RiwayatPresensiController extends Controller
 
         $sesiIds = $sesiList->pluck('id');
 
-        $mahasiswaIds = Presensi::whereIn('sesi_presensi_id', $sesiIds)
-            ->select('mahasiswa_id')->distinct()->pluck('mahasiswa_id');
+        $mahasiswaIds = PesertaKelas::where('kelas_perkuliahan_id', $kelas->id)
+            ->pluck('mahasiswa_id');
 
         $mahasiswas = Mahasiswa::whereIn('id', $mahasiswaIds)->orderBy('nama_lengkap')->get();
 
@@ -83,6 +85,8 @@ class RiwayatPresensiController extends Controller
             ->groupBy('mahasiswa_id')
             ->map(fn($rows) => $rows->keyBy('sesi_presensi_id'));
 
+        $statusMap = ['Hadir' => 'H', 'Sakit' => 'S', 'Izin' => 'I'];
+
         $matrix = [];
         foreach ($mahasiswas as $m) {
             $hadir = 0;
@@ -90,13 +94,103 @@ class RiwayatPresensiController extends Controller
             $sesiStatus = [];
             foreach ($sesiList as $s) {
                 $p      = $presensiMap[$m->id][$s->id] ?? null;
-                $status = ($p && $p->status_kehadiran === 'Hadir') ? 'H' : 'A';
+                $status = $statusMap[$p?->status_kehadiran ?? ''] ?? 'A';
                 $sesiStatus[$s->id] = $status;
                 $status === 'H' ? $hadir++ : $alpa++;
             }
-            $matrix[$m->id] = ['hadir' => $hadir, 'alpa' => $alpa, 'sesi' => $sesiStatus];
+            $total = $sesiList->count();
+            $pct   = $total > 0 ? round($hadir / $total * 100) : 0;
+            $matrix[$m->id] = ['hadir' => $hadir, 'alpa' => $alpa, 'pct' => $pct, 'sesi' => $sesiStatus];
         }
 
         return view('dosen.riwayat.show', compact('kelas', 'sesiList', 'mahasiswas', 'matrix'));
+    }
+
+    public function overridePresensi(Request $request)
+    {
+        $dosen = $this->getDosen();
+
+        $request->validate([
+            'sesi_id'      => 'required|exists:sesi_presensis,id',
+            'mahasiswa_id' => 'required|exists:mahasiswas,id',
+            'status'       => 'required|in:H,A,S,I',
+        ]);
+
+        $sesi = SesiPresensi::with('jadwalPerkuliahan.kelasPerkuliahan')->findOrFail($request->sesi_id);
+        abort_if($sesi->jadwalPerkuliahan->kelasPerkuliahan->dosen_id !== $dosen->id, 403);
+
+        $statusMap = ['H' => 'Hadir', 'S' => 'Sakit', 'I' => 'Izin'];
+
+        if ($request->status === 'A') {
+            Presensi::where('sesi_presensi_id', $request->sesi_id)
+                ->where('mahasiswa_id', $request->mahasiswa_id)
+                ->delete();
+        } else {
+            Presensi::updateOrCreate(
+                [
+                    'sesi_presensi_id' => $request->sesi_id,
+                    'mahasiswa_id'     => $request->mahasiswa_id,
+                ],
+                [
+                    'status_kehadiran' => $statusMap[$request->status],
+                    'waktu_absen'      => now(),
+                    'override_by'      => auth()->id(),
+                ]
+            );
+        }
+
+        return back()->with('success', 'Status presensi berhasil diperbarui.');
+    }
+
+    public function exportPdf(KelasPerkuliahan $kelas)
+    {
+        $dosen = $this->getDosen();
+        abort_if($kelas->dosen_id !== $dosen->id, 403);
+
+        $kelas->load(['mataKuliah', 'dosen', 'tahunAjaran']);
+
+        $sesiList = SesiPresensi::whereHas('jadwalPerkuliahan', fn($q) => $q->where('kelas_perkuliahan_id', $kelas->id))
+            ->where('status', 'selesai')
+            ->oldest('waktu_buka')
+            ->get();
+
+        $sesiIds = $sesiList->pluck('id');
+
+        $mahasiswaIds = PesertaKelas::where('kelas_perkuliahan_id', $kelas->id)
+            ->pluck('mahasiswa_id');
+
+        $mahasiswas = Mahasiswa::whereIn('id', $mahasiswaIds)->orderBy('nama_lengkap')->get();
+
+        $presensiMap = Presensi::whereIn('sesi_presensi_id', $sesiIds)
+            ->whereIn('mahasiswa_id', $mahasiswaIds)
+            ->get()
+            ->groupBy('mahasiswa_id')
+            ->map(fn($rows) => $rows->keyBy('sesi_presensi_id'));
+
+        $statusMap = ['Hadir' => 'H', 'Sakit' => 'S', 'Izin' => 'I'];
+
+        $matrix = [];
+        foreach ($mahasiswas as $m) {
+            $hadir = 0;
+            $alpa  = 0;
+            $sesiStatus = [];
+            foreach ($sesiList as $s) {
+                $p      = $presensiMap[$m->id][$s->id] ?? null;
+                $status = $statusMap[$p?->status_kehadiran ?? ''] ?? 'A';
+                $sesiStatus[$s->id] = $status;
+                $status === 'H' ? $hadir++ : $alpa++;
+            }
+            $total = $sesiList->count();
+            $pct   = $total > 0 ? round($hadir / $total * 100) : 0;
+            $matrix[$m->id] = ['hadir' => $hadir, 'alpa' => $alpa, 'pct' => $pct, 'sesi' => $sesiStatus];
+        }
+
+        $pdf = Pdf::loadView('admin.laporan.pdf', compact('kelas', 'sesiList', 'mahasiswas', 'matrix'))
+            ->setPaper('a4', 'landscape');
+
+        $filename = 'Laporan_' . str_replace([' ', '/'], '_', $kelas->mataKuliah->nama_mk ?? 'kelas')
+            . '_' . $kelas->nama_kelas . '.pdf';
+
+        return $pdf->download($filename);
     }
 }

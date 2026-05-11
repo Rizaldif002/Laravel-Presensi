@@ -8,6 +8,7 @@ use App\Http\Requests\StorePresensiRequest;
 use App\Models\Mahasiswa;
 use App\Models\Presensi;
 use App\Models\SesiPresensi;
+use App\Services\FaceRecognitionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -80,7 +81,8 @@ class PresensiApiController extends Controller
         }
 
         // G — Validasi hasil face recognition dari Flutter ML Kit
-        if (! $request->boolean('face_match') || (float) $request->face_confidence < 0.80) {
+        $faceService = new FaceRecognitionService();
+        if (! $faceService->verify($request->boolean('face_match'), (float) $request->face_confidence)) {
             return response()->json([
                 'status'  => false,
                 'reason'  => 'wajah_tidak_cocok',
