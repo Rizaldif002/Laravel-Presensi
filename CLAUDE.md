@@ -149,11 +149,17 @@ $ruangan->latitude   // DECIMAL(10,8)
 $ruangan->longitude  // DECIMAL(11,8)
 ```
 
-### Bug Diketahui
+### Bug Diketahui & Status
 
-`resources/views/admin/sesi/live.blade.php` baris 37 masih menggunakan
-`$sesi->kelasPerkuliahan->ruangan` yang salah.
-Harus diganti ke `$sesi->jadwalPerkuliahan->ruangan`.
+Tidak ada bug aktif yang diketahui di sisi web (Admin/Dosen).
+
+Bug lama di `admin/sesi/live.blade.php` baris 37 (`$sesi->kelasPerkuliahan->ruangan`)
+sudah diperbaiki — kode aktual sudah menggunakan `$sesi->jadwalPerkuliahan->ruangan`.
+
+Bug yang belum diperbaiki ada di **API layer** — lihat ROADMAP.md untuk detail lengkap:
+- Tabel `presensis`: kolom `latitude`/`longitude` bertipe `string` (harusnya DECIMAL)
+- Tabel `presensis`: kolom `jarak_meter`, `face_confidence`, `face_verified`, dll. belum ada
+- `JadwalApiController::hariIni()` tidak filter berdasarkan kelas yang diikuti mahasiswa
 
 ---
 
@@ -167,22 +173,27 @@ Harus diganti ke `$sesi->jadwalPerkuliahan->ruangan`.
 - [x] CRUD Data Master: Ruangan+GPS, Mata Kuliah, Tahun Ajaran
 - [x] Manajemen User: Dosen + Mahasiswa (CRUD + upload foto referensi)
 - [x] Kelola Kelas Perkuliahan + Jadwal
+- [x] Kelola Peserta Kelas (CRUD + import Excel per kelas)
 - [x] Sesi Presensi (buka/tutup + live monitor mahasiswa hadir)
-- [x] Excel Import: Dosen, Mahasiswa, MataKuliah, Kelas
-- [x] Laravel Sanctum + 7 API Endpoint
-- [x] GpsHelper (Haversine Formula)
-- [x] FaceRecognitionService (versi ML Kit)
-- [x] StorePresensiRequest (versi ML Kit — face_match + face_confidence)
+- [x] Excel Import: Dosen, Mahasiswa, MataKuliah, Kelas, PesertaKelas
+- [x] Laravel Sanctum + 7 API Endpoint (route & controller terdaftar)
+- [x] API Auth: login (NIM), logout, profile — fully implemented
+- [x] API Jadwal: hari-ini + sesi aktif — fully implemented
 - [x] Sidebar redesign: collapsible dropdown Alpine.js
 - [x] Sidebar restrukturisasi: group "Presensi" (Kelola Sesi + Riwayat)
-- [x] Riwayat Presensi (controller + view + filter + pagination)
-- [x] DomPDF reports (laporan presensi dasar)
+- [x] Riwayat Presensi Admin (controller + view + filter + override H/A/S/I)
+- [x] Riwayat Presensi Dosen (controller + view + filter)
 
 ### 🔲 Belum Selesai — Laravel (KERJAKAN URUT)
 
-- [ ] PresensiApiController.store() — 8 langkah validasi berurutan
-- [ ] Laporan Presensi halaman lengkap + Export PDF template
-- [ ] Validasi Manual Presensi oleh Dosen (override_by)
+- [ ] Migration perbaikan tabel `presensis` (tipe kolom + kolom yang hilang)
+- [ ] Ekstrak GpsHelper ke `app/Helpers/GpsHelper.php`
+- [ ] PresensiApiController.store() — 8 langkah validasi berurutan (A–H)
+- [ ] PresensiApiController.riwayat() — daftar presensi mahasiswa
+- [ ] Fix JadwalApiController.hariIni() — filter kelas yang diikuti mahasiswa
+- [ ] FaceRecognitionService — `app/Services/FaceRecognitionService.php`
+- [ ] Laporan Presensi halaman lengkap + Export PDF (DomPDF)
+- [ ] Validasi Manual Presensi oleh Dosen (override di panel dosen)
 
 ### 🔲 Belum Dimulai — Flutter
 
@@ -259,11 +270,14 @@ Semua endpoint prefix `/api/v1/`
 
 ```json
 // Berhasil:
-{"success": true, "message": "...", "data": {...}}
+{"status": true, "message": "...", "data": {...}}
 
 // Gagal:
-{"success": false, "reason": "kode_reason", "message": "pesan untuk Flutter"}
+{"status": false, "reason": "kode_reason", "message": "pesan untuk Flutter"}
 ```
+
+> Catatan: implementasi aktual menggunakan key `"status"` (bukan `"success"`).
+> Konsisten di seluruh AuthApiController, JadwalApiController, dan PresensiApiController.
 
 ### Kode Reason Presensi Gagal
 
